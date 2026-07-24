@@ -908,6 +908,11 @@ def formatar_data_br(valor):
     
     try:
         if isinstance(valor, str):
+            if " " in valor:
+                valor = valor.split(" ")[0]
+            if "/" in valor:
+                return valor
+
             data_obj = datetime.strptime(valor, '%Y-%m-%d')
             return data_obj.strftime('%d/%m/%Y') 
         
