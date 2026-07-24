@@ -111,15 +111,15 @@
             <div class="row mb-4">
                 <div class="col-md-3">
                     <label class="form-label fw-bold">AVCB (Bombeiros)</label>
-                    <input type="text" name="avcb" class="form-control" value="{{ prog.avcb if prog.avcb else '' }}">
+                    <input type="date" name="avcb" class="form-control" value="{{ prog.avcb | data_input if prog.avcb else '' }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold">Laudo de Habitabilidade</label>
-                    <input type="text" name="laudo_hab" class="form-control" value="{{ prog.laudo_hab if prog.laudo_hab else '' }}">
+                    <input type="date" name="laudo_hab" class="form-control" value="{{ prog.laudo_hab | data_input if prog.laudo_hab else '' }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold">Laudo de Segurança</label>
-                    <input type="text" name="laudo_seg" class="form-control" value="{{ prog.laudo_seg if prog.laudo_seg else '' }}">
+                    <input type="date" name="laudo_seg" class="form-control" value="{{ prog.laudo_seg | data_input if prog.laudo_seg else '' }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold">Licença PMSP</label>
@@ -129,7 +129,7 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <label class="form-label fw-bold">Termo de Convênio</label>
-                    <input type="text" name="termo_convenio" class="form-control" value="{{ prog.termo_convenio if prog.termo_convenio else '' }}">
+                    <input type="date" name="termo_convenio" class="form-control" value="{{ prog.termo_convenio | data_input if prog.termo_convenio else '' }}">
                 </div>
             </div>
             <hr>
