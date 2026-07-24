@@ -1,0 +1,215 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/servicos/{{ prog.rowid }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Cancelar
+    </a>
+    <h2 class="mb-0">Editar Programa / Serviço <span class="text-muted">#{{ prog.id_programa if prog.id_programa else prog.rowid }}</span></h2>
+</div>
+
+<div class="card shadow-sm border-primary">
+    <div class="card-body">
+        <form action="/programa/{{ prog.rowid }}/editar" method="POST">
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-link"></i> Vínculo Institucional e Identificação</h5>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Entidade Vinculada</label>
+                    <input type="text" name="registro_se" list="entidades-list" class="form-control" value="{{ prog.registro_se if prog.registro_se else '' }}" autocomplete="off">
+                    <datalist id="entidades-list">
+                        {% for e in entidades %}
+                        <option value="{{ e.registro }}">{{ e.sigla }} - {{ e.nome_ong }}</option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Nome do Serviço / Programa</label>
+                    <input type="text" name="servico_programa" class="form-control" value="{{ prog.servico_programa if prog.servico_programa else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">CNPJ do Programa</label>
+                    <input type="text" name="cnpj_prog" class="form-control" value="{{ prog.cnpj_prog if prog.cnpj_prog else '' }}">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Situação Principal</label>
+                    <select name="situacao_se" class="form-select border-primary">
+                        <option value="ATIVO" {% if prog.situacao_se|upper == 'ATIVO' %}selected{% endif %}>Ativo</option>
+                        <option value="AGUARDANDO RO" {% if prog.situacao_se|upper =='AGUARDANDO RO' %}selected{% endif %}>Aguardando RO</option>
+                        <option value="VENCIDO" {% if prog.situacao_se|upper == 'VENCIDO' %}selected{% endif %}>Vencido</option>
+                        <option value="CANCELADO" {% if prog.situacao_se|upper == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+                        <option value="SUSPENSO" {% if prog.situacao_se|upper == 'SUSPENSO' %}selected{% endif %}>Suspenso</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">ID do Programa</label>
+                    <input type="text" name="id_programa" class="form-control" value="{{ prog.id_programa if prog.id_programa else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Situação Secundária (Situação 2)</label>
+                    <input type="text" name="situacao2" class="form-control" value="{{ prog.situacao2 if prog.situacao2 else '' }}">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-users"></i> Público e Capacidade</h5>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Tipo de Serviço</label>
+                    <input type="text" name="tipo_se" class="form-control" value="{{ prog.tipo_se if prog.tipo_se else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Regime de Atendimento</label>
+                    <input type="text" name="regime_atendimento" class="form-control" value="{{ prog.regime_atendimento if prog.regime_atendimento else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Faixa Etária</label>
+                    <input type="text" name="faixa_etaria" class="form-control" value="{{ prog.faixa_etaria if prog.faixa_etaria else '' }}">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Perfil / Atendidos</label>
+                    <input type="text" name="atendidos" class="form-control" value="{{ prog.atendidos if prog.atendidos else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Capacidade Máxima</label>
+                    <input type="text" name="numero_atendidos" class="form-control" value="{{ prog.numero_atendidos if prog.numero_atendidos else '' }}">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-map-location-dot"></i> Endereço e Contato</h5>
+            <div class="row mb-4">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">CEP</label>
+                    <input type="text" name="cep_se" class="form-control" value="{{ prog.cep_se if prog.cep_se else '' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Número</label>
+                    <input type="text" name="numero_se" class="form-control" value="{{ prog.numero_se if prog.numero_se else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Complemento</label>
+                    <input type="text" name="complemento_se" class="form-control" value="{{ prog.complemento_se if prog.complemento_se else '' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Telefone</label>
+                    <input type="text" name="telefone_se" class="form-control" value="{{ prog.telefone_se if prog.telefone_se else '' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Celular</label>
+                    <input type="text" name="celular_se" class="form-control" value="{{ prog.celular_se if prog.celular_se else '' }}">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-file-shield"></i> Vistorias e Laudos</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">AVCB (Bombeiros)</label>
+                    <input type="text" name="avcb" class="form-control" value="{{ prog.avcb if prog.avcb else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Laudo de Habitabilidade</label>
+                    <input type="text" name="laudo_hab" class="form-control" value="{{ prog.laudo_hab if prog.laudo_hab else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Laudo de Segurança</label>
+                    <input type="text" name="laudo_seg" class="form-control" value="{{ prog.laudo_seg if prog.laudo_seg else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Licença PMSP</label>
+                    <input type="text" name="licenca_pmsp" class="form-control" value="{{ prog.licenca_pmsp if prog.licenca_pmsp else '' }}">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label class="form-label fw-bold">Termo de Convênio</label>
+                    <input type="text" name="termo_convenio" class="form-control" value="{{ prog.termo_convenio if prog.termo_convenio else '' }}">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-folder-open"></i> Processos, Resoluções e Cronograma</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Processo SEI</label>
+                    <input type="text" name="processo_sei_prog" class="form-control sei-mask" value="{{ prog.processo_sei_prog if prog.processo_sei_prog else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Proc. Atualização</label>
+                    <input type="text" name="proc_prog_atualizacao" class="form-control sei-mask" value="{{ prog.proc_prog_atualizacao if prog.proc_prog_atualizacao else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Nº Curso Aprendiz</label>
+                    <input type="text" name="n_curso_aprendiz" class="form-control" value="{{ prog.n_curso_aprendiz if prog.n_curso_aprendiz else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Resolução</label>
+                    <input type="text" name="resolucao_se" class="form-control" value="{{ prog.resolucao_se if prog.resolucao_se else '149/CMDCA-SP/2022' }}">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data RO</label>
+                    <input type="date" name="data_ro_se" class="form-control" value="{{ prog.data_ro_se | data_input }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Vencimento</label>
+                    <input type="date" name="vencimento_prog_se" class="form-control" value="{{ prog.vencimento_prog_se | data_input }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data D.O.</label>
+                    <input type="date" name="data_do_se" class="form-control" value="{{ prog.data_do_se | data_input }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Pág. D.O.</label>
+                    <input type="text" name="pag_do_se" class="form-control" value="{{ prog.pag_do_se if prog.pag_do_se else '' }}">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Protocolo</label>
+                    <input type="date" name="protocolo_se" class="form-control" value="{{ prog.protocolo_se | data_input }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">CPR</label>
+                    <input type="date" name="cpr_se" class="form-control" value="{{ prog.cpr_se | data_input }}">
+                </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success px-5 py-2 fs-5">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded', function() {
+    const seiInputs = document.querySelectorAll('.sei-mask');
+
+    seiInputs.forEach(function(input) {
+        input.setAttribute('maxlength', '19');
+
+        input.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\D/g, '');
+
+            if (valor.length > 15) {
+                valor = valor.replace(/^(\d{4})(\d{4})(\d{7})(\d{1}).*/, '$1.$2/$3-$4');
+            } else if (valor.length > 8) {
+                valor = valor.replace(/^(\d{4})(\d{4})(\d+)/, '$1.$2/$3');
+            } else if (valor.length > 4) {
+                valor = valor.replace(/^(\d{4})(\d+)/, '$1.$2');
+            }
+
+            e.target.value = valor;
+        });
+    });
+});</script>
+{% endblock %}

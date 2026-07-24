@@ -1,0 +1,145 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/registros" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Voltar
+        </a>
+        <h2 class="mb-0">Processo de Registro <span class="text-muted">#{{ reg.controle }}</span></h2>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <a href="/registro/{{ reg.id }}/editar" class="btn btn-primary shadow-sm"><i class="fa-solid fa-pen"></i> Editar</a>
+
+            <button onclick="confirmarExclusaoRegistro('{{ reg.id }}')" class="btn btn-outline-danger shadow-sm">
+                <i class="fa-solid fa-trash"></i> Excluir
+            </button>
+            <a href="/entidade/{{ ong.registro }}/certificado" target="_blank" class="btn btn-success shadow-sm">
+                <i class="fa-solid fa-file-certificate"></i> Certificado de Registro
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-primary shadow-sm d-flex justify-content-between align-items-center mb-4" role="alert">
+    <div>
+        <h5 class="alert-heading mb-1"><i class="fa-solid fa-building-ngo"></i> Instituição Vinculada</h5>
+        {% if ong %}
+        <p class="mb-0 fw-bold">{{ ong.sigla }} - {{ ong.nome_ong }}</p>
+        {% else %}
+        <p class="mb-0 text-danger"><i class="fa-solid fa-circle-exclamation"></i> Entidade não localizada no banco de dados.</p>
+        {% endif %}
+    </div>
+    <div>
+        <span class="badge bg-light text-primary border border-primary fs-6 mb-2">Registro: {{ reg.registro_reg }}</span><br>
+        {% if ong %}
+        <a href="/entidade/{{ ong.registro }}" class="btn btn-sm btn-primary mt-1">Ver Dossiê da ONG <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4 border-top-0 border-start-0 border-end-0 border-bottom border-5
+    {% if reg.situacao == 'Ativo' %}border-success{% elif reg.situacao == 'Vencido' %}border-danger{% else %}border-warning{% endif %}">
+
+    <div class="card-header bg-white pt-3 pb-2 d-flex justify-content-between">
+        <h4 class="mb-0 text-primary">Detalhes do Processo</h4>
+        <h4 class="mb-0">
+            {% if reg.situacao == 'Ativo' %}
+            <span class="badge bg-success px-4 py-2">{{ reg.situacao }}</span>
+            {% elif reg.situacao == 'Vencido' %}
+            <span class="badge bg-danger px-4 py-2">{{ reg.situacao }}</span>
+            {% else %}
+            <span class="badge bg-warning text-dark px-4 py-2">{{ reg.situacao }}</span>
+            {% endif %}
+        </h4>
+    </div>
+
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <p class="text-muted mb-1 fw-bold">Solicitação</p>
+                <p class="fs-5">{{ reg.solicitacao if reg.solicitacao else '-' }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="text-muted mb-1 fw-bold">Processo Físico</p>
+                <p class="fs-5">{{ reg.processo_fisico if reg.processo_fisico else '-' }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="text-muted mb-1 fw-bold">Resolução</p>
+                <p class="fs-5">{{ reg.resolucao if reg.resolucao else '-' }}</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <h5 class="text-primary mb-3"><i class="fa-solid fa-calendar-check"></i> Prazos</h5>
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Data RO</p>
+                <p class="fs-5">{{ reg.data_ro | formatardata | data_br if reg.data_ro else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Vencimento</p>
+                <p class="fs-5 fw-bold {% if reg.situacao == 'Vencido' %}text-danger{% endif %}">{{ reg.vencimento | formatardata | data_br if reg.vencimento else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Validade</p>
+                <p class="fs-5">{{ reg.validade | formatardata | data_br if reg.validade else '-' }}</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <h5 class="text-primary mb-3"><i class="fa-solid fa-book-journal-whills"></i> Diário Oficial e Protocolos</h5>
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Data D.O.</p>
+                <p class="fs-5">{{ reg.data_do }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Pág. D.O.</p>
+                <p class="fs-5">{{ reg.pag_doc }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">CPR</p>
+                <p class="fs-5">{{ reg.cpr | formatardata | data_br if reg.cpr else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Protocolo</p>
+                <p class="fs-5">{{ reg.protocolo | formatardata | data_br if reg.protocolo else '-' }}</p>
+            </div>
+        </div>
+
+        {% if reg.observacoes %}
+        <hr>
+        <div class="row">
+            <div class="col-12">
+                <h5 class="text-primary mb-2"><i class="fa-solid fa-comment-dots"></i> Observações</h5>
+                <div class="p-3 bg-light rounded border border-secondary border-opacity-25">
+                    {{ reg.observacoes }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+    function confirmarExclusaoRegistro(id_registro) {
+        // Primeira camada de aviso
+        if (confirm('⚠️ PRIMEIRA CONFIRMAÇÃO:\nVocê tem certeza que deseja apagar definitivamente este processo de registro?')) {
+
+            // Segunda camada de digitação obrigatória
+            let texto = prompt('🛑 SEGUNDA CONFIRMAÇÃO:\nEsta ação é irreversível e removerá todas as datas de RO, prazos e observações cadastradas.\n\nPara prosseguir, digite exatamente a palavra EXCLUIR no campo abaixo:');
+
+            if (texto === 'EXCLUIR') {
+                // Redireciona para a rota de exclusão que criamos
+                window.location.href = '/registro/' + id_registro + '/excluir';
+            } else if (texto !== null) {
+                alert('❌ Validação incorreta. O processo de exclusão foi cancelado por segurança.');
+            }
+        }
+    }
+</script>
+{% endblock %}

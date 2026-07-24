@@ -1,0 +1,98 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/registro/{{ reg.id }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Cancelar
+    </a>
+    <h2 class="mb-0">Editar Processo <span class="text-muted">#{{ reg.controle }}</span></h2>
+</div>
+<div class="card shadow-sm border-primary">
+    <div class="card-body">
+        <form action="/registro/{{ reg.id }}/editar" method="POST">
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-link"></i> Vínculo Institucional e Status</h5>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Situação Atual</label>
+                <select name="situacao" class="form-select border-primary shadow-sm mb-2">
+                    <option value="ATIVO" {% if reg.situacao and reg.situacao.upper() == 'ATIVO' %}selected{% endif %}>Ativo</option>
+                    <option value="AGUARDANDO RO" {% if reg.situacao and reg.situacao.upper() == 'AGUARDANDO RO' %}selected{% endif %}>Aguardando RO</option>
+                    <option value="VENCIDO" {% if reg.situacao and reg.situacao.upper() == 'VENCIDO' %}selected{% endif %}>Vencido</option>
+                    <option value="CANCELADO" {% if reg.situacao and reg.situacao.upper() == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+                    <option value="SUSPENSO" {% if reg.situacao and reg.situacao.upper() == 'SUSPENSO' %}selected{% endif %}>Suspenso</option>
+                </select>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="travar_status" value="sim" id="checkTrava" {% if status_travado %}checked{% endif %}>
+                    <label class="form-check-label small text-muted fw-bold" for="checkTrava">
+                        <i class="fa-solid fa-pin"></i> Travar Status Manual
+                    </label>
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-calendar-days"></i> Cronograma e Prazos</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data da RO</label>
+                    <input type="date" name="data_ro" class="form-control" value="{{ reg.data_ro | data_input }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Vencimento</label>
+                    <input type="date" name="vencimento" class="form-control" value="{{ reg.vencimento | data_input }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="validade" class="form-label fw-bold">Validade do Registro</label>
+                    <select class="form-select" id="validade" name="validade" required>
+                        <option value="02 (DOIS) ANOS" {% if reg and reg.validade == '02 (DOIS) ANOS' %}selected{% endif %}>
+                            02 (DOIS) ANOS
+                        </option>
+                        <option value="04 (QUATRO) ANOS" {% if reg and reg.validade == '04 (QUATRO) ANOS' %}selected{% endif %}>
+                            04 (QUATRO) ANOS
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Resolução</label>
+                    <input type="text" name="resolucao" class="form-control" value="{{ reg.resolucao if reg.resolucao else '148/CMDCA-SP/2022' }}">
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-file-invoice"></i> Publicações e Identificadores</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data D.O.</label>
+                    <input type="date" name="data_do" class="form-control" value="{{ reg.data_do | data_input }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Pág. D.O.</label>
+                    <input type="text" name="pag_doc" class="form-control" value="{{ reg.pag_doc if reg.pag_doc else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">CPR</label>
+                    <input type="date" name="cpr" class="form-control" value="{{ reg.cpr | data_input }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Protocolo</label>
+                    <input type="date" name="protocolo" class="form-control" value="{{ reg.protocolo | data_input }}">
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-comment-dots"></i> Informações Adicionais</h5>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label class="form-label fw-bold">Observações</label>
+                    <textarea name="observacoes" class="form-control" rows="3">{{ texto_observacoes }}</textarea>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <h2 class="mb-0 text-dark fw-bold">Gestão de Programas e Serviços</h2>
+        <span class="badge bg-primary rounded-pill">{{ servicos.total }} cadastrados</span>
+    </div>
+
+    <a href="/programa/novo" class="btn btn-primary shadow-sm fw-semibold" data-bs-toggle="tooltip" title="Adicionar um novo programa">
+        <i class="fa-solid fa-plus"></i> Novo Programa
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form action="/servicos" method="GET" class="mb-0">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-primary text-primary">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" name="q" class="form-control border-primary border-start-0 ps-0"
+                       placeholder="Buscar por Registro, Nome do Programa, CNPJ, Processo SEI..."
+                       value="{{ termo_busca }}"
+                       style="box-shadow: none;">
+                <button class="btn btn-primary px-4 fw-semibold" type="submit">Buscar</button>
+
+                {% if termo_busca %}
+                <a href="/servicos" class="btn btn-outline-danger px-3 d-flex align-items-center" title="Limpar filtros">
+                    <i class="fa-solid fa-xmark me-1"></i> Limpar
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Registro</th>
+                    <th>Programa</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for prog in servicos.items %}
+                <tr onclick="window.location.href='/servicos/{{ prog.rowid }}'" style="cursor: pointer;">
+
+                    <td><strong>{{ prog.registro_se }}</strong></td>
+
+                    <td><strong>{{ prog.servico_programa }}</strong></td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-center mt-4 mb-5">
+            <nav aria-label="Navegação de páginas de serviços">
+                <ul class="pagination shadow-sm">
+
+                    <li class="page-item {% if not servicos.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('listar_servicos', page=servicos.prev_num, q=termo_busca) if servicos.has_prev else '#' }}">
+                            <i class="fa-solid fa-chevron-left"></i> Anterior
+                        </a>
+                    </li>
+
+                    {% for page_num in servicos.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                    <li class="page-item {% if page_num == servicos.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('listar_servicos', page=page_num, q=termo_busca) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link text-muted">...</span></li>
+                    {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if not servicos.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('listar_servicos', page=servicos.next_num, q=termo_busca) if servicos.has_next else '#' }}">
+                            Próximo <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}

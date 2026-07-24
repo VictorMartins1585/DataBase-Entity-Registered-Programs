@@ -1,0 +1,276 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/servicos" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Cancelar
+    </a>
+    <h2 class="mb-0">Cadastrar Novo Programa / Serviço</h2>
+</div>
+
+{% if erro %}
+<div class="alert alert-danger shadow-sm" role="alert">
+    <i class="fa-solid fa-triangle-exclamation"></i> {{ erro }}
+</div>
+{% endif %}
+
+<div class="card shadow-sm border-primary">
+    <div class="card-body">
+        <form action="/programa/novo" method="POST">
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-link"></i> Vínculo Institucional e Identificação</h5>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold text-danger">Entidade Vinculada (Obrigatório)</label>
+                    <input type="text" name="registro_se" id="registro_se" list="entidades-list" class="form-control" placeholder="Busque por ONG..." required autocomplete="off" onchange="buscarDadosEntidade()">
+
+                    <datalist id="entidades-list">
+                        {% for e in entidades %}
+                        <option value="{{ e.registro }}">{{ e.sigla }} - {{ e.nome_ong }}</option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Nome do Serviço / Programa</label>
+                    <input type="text" name="servico_programa" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">CNPJ do Programa</label>
+                    <input type="text" name="cnpj_prog" id="cnpj_prog" class="form-control" placeholder="00.000.000/0000-00">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Situação Principal</label>
+                    <select name="situacao_se" id="situacao_se" class="form-select">
+                        <option value="ATIVO">Ativo</option>
+                        <option value="VENCIDO">Vencido</option>
+                        <option value="AGUARDANDO RO">Aguardando RO</option>
+                        <option value="CANCELADO">Cancelado</option>
+                        <option value="SUSPENSO">Suspenso</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">ID do Programa</label>
+                    <input type="text" name="id_programa" class="form-control" placeholder="Ex: 123/25">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Situação Secundária</label>
+                    <input type="text" name="situacao2" class="form-control" placeholder="Status do Termo/Convênio">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-users"></i> Público e Capacidade</h5>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Tipo de Serviço</label>
+                    <input type="text" name="tipo_se" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Regime de Atendimento</label>
+                    <input type="text" name="regime_atendimento" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Faixa Etária</label>
+                    <input type="text" name="faixa_etaria" class="form-control" required>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Perfil / Atendidos</label>
+                    <input type="text" name="atendidos" class="form-control" placeholder="Ex: Crianças, Idosos, Gestantes..." required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Capacidade Máxima (Número)</label>
+                    <input type="text" name="numero_atendidos" class="form-control">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-map-location-dot"></i> Endereço e Contato</h5>
+            <div class="row mb-4">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">CEP</label>
+                    <input type="text" name="cep_se" class="form-control" oninput="mascaraCEP(this)" maxlength="9" placeholder="00000-000" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Número</label>
+                    <input type="text" name="numero_se" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Complemento</label>
+                    <input type="text" name="complemento_se" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Telefone</label>
+                    <input type="text" name="telefone_se" id="telefone_se" class="form-control" oninput="mascaraTelefone(this)" maxlength="15" placeholder="(11) 0000-0000">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Celular</label>
+                    <input type="text" name="celular_se" class="form-control" oninput="mascaraTelefone(this)" maxlength="15" placeholder="(11) 90000-0000">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-file-shield"></i> Vistorias e Laudos</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">AVCB (Bombeiros)</label>
+                    <input type="date" name="avcb" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Laudo de Habitabilidade</label>
+                    <input type="date" name="laudo_hab" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Laudo de Segurança</label>
+                    <input type="date" name="laudo_seg" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Licença PMSP</label>
+                    <input type="text" name="licenca_pmsp" class="form-control">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label class="form-label fw-bold">Termo de Convênio</label>
+                    <input type="text" name="termo_convenio" class="form-control">
+                </div>
+            </div>
+            <hr>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-folder-open"></i> Processos, Resoluções e Cronograma</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Processo SEI</label>
+                    <input type="text" name="processo_sei_prog" id="processo_sei_prog" class="form-control sei-mask" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Proc. Atualização</label>
+                    <input type="text" name="proc_prog_atualizacao" class="form-control sei-mask">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Nº Curso Aprendiz</label>
+                    <input type="text" name="n_curso_aprendiz" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="resolucao_se" class="form-label fw-bold">Resolução (Serviços)</label>
+                    <input type="text" class="form-control" id="resolucao_se" name="resolucao_se" value="149/CMDCA-SP/2022" required>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data RO</label>
+                    <input type="date" name="data_ro_se" id="data_ro_se" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Vencimento</label>
+                    <input type="date" name="vencimento_prog_se" id="vencimento_prog_se" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data D.O.</label>
+                    <input type="date" name="data_do_se" id="data_do_se" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Pág. D.O.</label>
+                    <input type="text" name="pag_do_se"  class="form-control">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Protocolo</label>
+                    <input type="date" name="protocolo_se" id="protocolo_se" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">CPR</label>
+                    <input type="date" name="cpr_se" id="cpr_se" class="form-control">
+                </div>
+            </div>
+
+            <hr>
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success px-5 py-2 fs-5">
+                    <i class="fa-solid fa-floppy-disk"></i> Gravar Programa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function buscarDadosEntidade() {
+        let registro = document.getElementById('registro_se').value.trim();
+
+        if (registro.length > 0) {
+
+            fetch(`/api/dados_registro?registro=${encodeURIComponent(registro)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.erro) {
+                        // Preenche os campos do Serviço exatamente como no seu banco de dados
+                        if (document.getElementById('cnpj_prog')) document.getElementById('cnpj_prog').value = data.cnpj;
+                        if (document.getElementById('resolucao_se')) document.getElementById('resolucao_se').value = data.resolucao;
+                        if (document.getElementById('vencimento_prog_se')) document.getElementById('vencimento_prog_se').value = data.vencimento;
+                        if (document.getElementById('data_do_se')) document.getElementById('data_do_se').value = data.data_do;
+                        if (document.getElementById('data_ro_se')) document.getElementById('data_ro_se').value = data.data_ro;
+                        if (document.getElementById('processo_sei_prog')) document.getElementById('processo_sei_prog').value = data.processo_sei;
+                        if (document.getElementById('situacao_se')) document.getElementById('situacao_se').value = data.situacao;
+                        if (document.getElementById('telefone_se')) document.getElementById('telefone_se').value = data.telefone;
+                        if (document.getElementById('protocolo_se')) document.getElementById('protocolo_se').value = data.protocolo;
+                        if (document.getElementById('cpr_se')) document.getElementById('cpr_se').value = data.cpr;
+                    } else {
+                        alert("Atenção: Esse número de Registro não foi encontrado na base de Entidades.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro na busca:", error);
+                });
+        }
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const seiInputs = document.querySelectorAll('.sei-mask');
+
+        seiInputs.forEach(function (input) {
+            input.setAttribute('maxlength', '19');
+
+            input.addEventListener('input', function (e) {
+                let valor = e.target.value.replace(/\D/g, '');
+
+                if (valor.length > 15) {
+                    valor = valor.replace(/^(\d{4})(\d{4})(\d{7})(\d{1}).*/, '$1.$2/$3-$4');
+                } else if (valor.length > 8) {
+                    valor = valor.replace(/^(\d{4})(\d{4})(\d+)/, '$1.$2/$3');
+                } else if (valor.length > 4) {
+                    valor = valor.replace(/^(\d{4})(\d+)/, '$1.$2');
+                }
+
+                e.target.value = valor;
+            });
+        });
+    });
+</script>
+<script>
+    function mascaraTelefone(campo) {
+        let valor = campo.value;
+
+        valor = valor.replace(/\D/g, "");
+        valor = valor.substring(0, 11);
+        valor = valor.replace(/^(\d{2})(\d)/g, "($1) $2");
+        valor = valor.replace(/(\d)(\d{4})$/, "$1-$2");
+        campo.value = valor;
+    }
+</script>
+<script>
+    function mascaraCEP(campo) {
+        let valor = campo.value;
+        valor = valor.replace(/\D/g, "");
+        valor = valor.substring(0, 8);
+        valor = valor.replace(/^(\d{5})(\d)/, "$1-$2");
+
+        campo.value = valor;
+    }
+</script>
+{% endblock %}

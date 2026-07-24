@@ -1,0 +1,119 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/registros" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Cancelar
+    </a>
+    <h2 class="mb-0">Inserir Novo Registro de Processo</h2>
+</div>
+
+{% if erro %}
+<div class="alert alert-danger" role="alert">
+    <i class="fa-solid fa-triangle-exclamation"></i> {{ erro }}
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form action="/registro/novo" method="POST">
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-link"></i> Vínculo Institucional</h5>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Entidade Vinculada</label>
+                    <input type="text" name="registro_reg" list="entidades-list" class="form-control" placeholder="Digite o nº de registro ou nome da ONG para buscar..." required autocomplete="on">
+
+                    <datalist id="entidades-list">
+                        {% for e in entidades %}
+                        <option value="{{ e.registro }}">{{ e.sigla }} - {{ e.nome_ong }}</option>
+                        {% endfor %}
+                    </datalist>
+                    <small class="text-muted">Selecione uma opção válida da lista de busca automática.</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Solicitação</label>
+                    <select name="solicitacao" id="solicitacao" class="form-select" required>
+                        <option value="Renovação">Renovação</option>
+                        <option value="Novo Registro">Novo Registro</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Processo Físico</label>
+                    <input type="text" name="processo_fisico" class="form-control">
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-calendar-days"></i> Cronograma e Prazos</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data da RO</label>
+                    <input type="date" name="data_ro" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Vencimento</label>
+                    <input type="date" name="vencimento" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="validade" class="form-label fw-bold">Validade do Registro</label>
+                    <select class="form-select" id="validade" name="validade" required>
+                        <option value="" disabled selected>Selecione o tempo de validade...</option>
+                        <option value="02 (DOIS) ANOS">02 (DOIS) ANOS</option>
+                        <option value="04 (QUATRO) ANOS">04 (QUATRO) ANOS</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="resolucao" class="form-label fw-bold">Resolução</label>
+                    <input type="text" class="form-control" id="resolucao" name="resolucao" value="148/CMDCA-SP/2022" required>
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-file-invoice"></i> Publicações e Identificadores</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Data D.O.</label>
+                    <input type="date" name="data_do" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Pág. D.O.</label>
+                    <input type="text" name="pag_doc" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">CPR</label>
+                    <input type="date" name="cpr" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Protocolo</label>
+                    <input type="date" name="protocolo" class="form-control">
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-comment-dots"></i> Informações Adicionais</h5>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label class="form-label fw-bold">Observações</label>
+                    <textarea name="observacoes" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="fa-solid fa-floppy-disk"></i> Gravar Processo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+<div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+{% endblock %}

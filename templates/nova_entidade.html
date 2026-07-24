@@ -1,0 +1,171 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/entidades" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Cancelar
+        </a>
+        <h2 class="mb-0">Nova Entidade</h2>
+    </div>
+</div>
+
+<div class="card shadow-sm border-primary">
+    <div class="card-body">
+        <form action="/nova_entidade" method="POST">
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label text-success fw-bold"><i class="fa-solid fa-wand-magic-sparkles"></i> Número de Registro (Automático)</label>
+                    <input type="text" class="form-control bg-light text-success fw-bold" value="{{ registro_gerado }}" readonly>
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-building"></i> Dados Institucionais</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">CNPJ</label>
+                    <input type="text" name="cnpj" class="form-control cnpj-mask" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nome Oficial (Razão Social)</label>
+                    <input type="text" name="nome_ong" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Sigla</label>
+                    <input type="text" name="sigla" class="form-control">
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-map-location-dot"></i> Endereço</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">CEP</label>
+                    <input type="text" name="cep" class="form-control"oninput="mascaraCEP(this)" maxlength="9" placeholder="00000-000">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Número</label>
+                    <input type="text" name="numero" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Complemento</label>
+                    <input type="text" name="complemento" class="form-control">
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-address-book"></i> Contato e Liderança</h5>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Presidente</label>
+                    <input type="text" name="presidencia" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">E-mail</label>
+                    <input type="email" name="email" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Site</label>
+                    <input type="text" name="site" class="form-control" placeholder="ex: www.ong.org.br">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Telefone 1</label>
+                    <input type="text" name="telefone1" class="form-control" oninput="mascaraTelefone(this)" maxlength="15" placeholder="(11) 0000-0000">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Telefone 2</label>
+                    <input type="text" name="telefone2" class="form-control" oninput="mascaraTelefone(this)" maxlength="15" placeholder="(11) 0000-0000">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Celular</label>
+                    <input type="text" name="cel" class="form-control" oninput="mascaraCelular(this)" maxlength="15" placeholder="(11) 90000-0000">
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-primary"><i class="fa-solid fa-folder-open"></i> Documentação e Processos Iniciais</h5>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Processo SEI</label>
+                    <input type="text" name="processo_sei" class="form-control sei-mask" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Proc. Atualização</label>
+                    <input type="text" name="proc_atualizacao" class="form-control sei-mask">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Tipo de Atendimento</label>
+                    <input type="text" name="tipo_de_atendimento" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Documento Sede</label>
+                    <input type="text" name="documento_sede" class="form-control">
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fa-solid fa-check"></i> Cadastrar Nova Entidade
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const seiInputs = document.querySelectorAll('.sei-mask');
+
+    seiInputs.forEach(function(input) {
+        input.setAttribute('maxlength', '19');
+
+        input.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\D/g, '');
+
+            if (valor.length > 15) {
+                valor = valor.replace(/^(\d{4})(\d{4})(\d{7})(\d{1}).*/, '$1.$2/$3-$4');
+            } else if (valor.length > 8) {
+                valor = valor.replace(/^(\d{4})(\d{4})(\d+)/, '$1.$2/$3');
+            } else if (valor.length > 4) {
+                valor = valor.replace(/^(\d{4})(\d+)/, '$1.$2');
+            }
+
+            e.target.value = valor;
+        });
+    });
+});
+</script>
+<script>
+    function mascaraTelefone(campo) {
+        let valor = campo.value;
+        valor = valor.replace(/\D/g, "");
+        valor = valor.substring(0, 11);
+        valor = valor.replace(/^(\d{2})(\d)/g, "($1) $2");
+        valor = valor.replace(/(\d)(\d{4})$/, "$1-$2");
+        campo.value = valor;
+    }
+</script>
+<script>
+    function mascaraCEP(campo) {
+        let valor = campo.value;
+        valor = valor.replace(/\D/g, "");
+        valor = valor.substring(0, 8);
+        valor = valor.replace(/^(\d{5})(\d)/, "$1-$2");
+
+        campo.value = valor;
+    }
+</script>
+<script>
+    function mascaraCelular(campo) {
+        let valor = campo.value;
+
+        valor = valor.replace(/\D/g, "");
+        valor = valor.substring(0, 11);
+        valor = valor.replace(/^(\d{2})(\d)/g, "($1) $2");
+        valor = valor.replace(/(\d{5})(\d)/, "$1-$2");
+
+        campo.value = valor;
+    }
+</script>
+{% endblock %}

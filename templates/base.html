@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0">
+    <meta name="description" content="CPR DB — Sistema interno de gestão de entidades, registros e serviços da Comissão Permanente de Registros do CMDCA/SP.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231F5C4F'/%3E%3Ctext x='50' y='68' font-family='Arial, sans-serif' font-weight='700' font-size='50' fill='white' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
+    <title>CPR DataBase</title>
+
+    <!-- Tipografia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS do Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Ícones FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* ===== TOKENS DE DESIGN ===== */
+        :root {
+            --brand-primary: #1F5C4F;
+            --brand-primary-dark: #164A40;
+            --brand-accent: #C98A3E;
+            --brand-bg: #F5F6F4;
+            --brand-surface: #FFFFFF;
+            --brand-border: #E1E4E1;
+            --brand-ink: #16211F;
+            --brand-muted: #5B6663;
+            --bs-body-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            --bs-body-bg: var(--brand-bg);
+            --bs-body-color: var(--brand-ink);
+            --bs-link-color: var(--brand-primary);
+            --bs-link-hover-color: var(--brand-primary-dark);
+        }
+
+        [data-bs-theme="dark"] {
+            --brand-bg: #12181A;
+            --brand-surface: #1C2422;
+            --brand-border: #2B332F;
+            --brand-ink: #E7ECEA;
+            --brand-muted: #93A19C;
+            --brand-primary: #4FB3A0;
+            --brand-primary-dark: #6FC5B4;
+            --brand-accent: #E0A85C;
+        }
+
+        body {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            background-color: var(--brand-bg);
+            color: var(--brand-ink);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6, .navbar-brand, .marca-titulo {
+            font-family: 'Manrope', 'Inter', sans-serif;
+        }
+
+        a {
+            color: var(--brand-primary);
+        }
+
+            a:hover {
+                color: var(--brand-primary-dark);
+            }
+
+        /* Faixa institucional no topo */
+        .faixa-topo {
+            height: 10px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar-cpr {
+            background-color: var(--brand-primary) !important;
+            padding-top: .65rem;
+            padding-bottom: .65rem;
+        }
+
+            .navbar-cpr .navbar-brand {
+                display: flex;
+                align-items: center;
+                gap: .6rem;
+                line-height: 1.05;
+            }
+
+            .navbar-cpr .marca-icone {
+                width: 36px;
+                height: 36px;
+                border-radius: 9px;
+                background-color: rgba(255,255,255,.14);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+                color: #fff;
+            }
+
+            .navbar-cpr .marca-titulo {
+                font-weight: 800;
+                font-size: 1.15rem;
+                color: #fff;
+                letter-spacing: .2px;
+            }
+
+            .navbar-cpr .marca-subtitulo {
+                font-size: .66rem;
+                font-weight: 600;
+                letter-spacing: 1.2px;
+                text-transform: uppercase;
+                color: rgba(255,255,255,.65);
+            }
+
+            .navbar-cpr .nav-link {
+                color: rgba(255,255,255,.8) !important;
+                font-weight: 500;
+                font-size: .93rem;
+                border-radius: 8px;
+                padding: .45rem .85rem !important;
+                margin: 0 .1rem;
+                transition: background-color .15s ease, color .15s ease;
+            }
+
+                .navbar-cpr .nav-link:hover {
+                    background-color: rgba(255,255,255,.1);
+                    color: #fff !important;
+                }
+
+                .navbar-cpr .nav-link.active {
+                    background-color: rgba(255,255,255,.16);
+                    color: #fff !important;
+                    font-weight: 600;
+                }
+
+                    .navbar-cpr .nav-link.active::after {
+                        content: "";
+                        display: block;
+                        height: 2px;
+                        width: 18px;
+                        margin: 3px auto 0;
+                        background-color: var(--brand-accent);
+                        border-radius: 2px;
+                    }
+
+        #btn-modo-escuro {
+            border-color: rgba(255,255,255,.35);
+            color: #fff;
+        }
+
+            #btn-modo-escuro:hover {
+                background-color: rgba(255,255,255,.14);
+                border-color: rgba(255,255,255,.5);
+            }
+
+        /* ===== RODAPÉ ===== */
+        footer.rodape-cpr {
+            border-top: 1px solid var(--brand-border) !important;
+            color: var(--brand-muted);
+        }
+
+            footer.rodape-cpr small {
+                letter-spacing: .2px;
+            }
+
+            footer.rodape-cpr .ponto-acento {
+                color: var(--brand-accent);
+                padding: 0 .35rem;
+            }
+
+        /* ===== MODO ESCURO (compatibilidade com componentes existentes) ===== */
+        body.modo-escuro {
+            background-color: var(--brand-bg) !important;
+            color: var(--brand-ink) !important;
+        }
+
+            body.modo-escuro .card,
+            body.modo-escuro .bg-light,
+            body.modo-escuro .bg-white {
+                background-color: var(--brand-surface) !important;
+                color: var(--brand-ink) !important;
+                border-color: var(--brand-border) !important;
+            }
+
+            body.modo-escuro .table {
+                color: var(--brand-ink) !important;
+            }
+
+                body.modo-escuro .table td,
+                body.modo-escuro .table th {
+                    border-color: var(--brand-border) !important;
+                }
+
+            body.modo-escuro .form-control,
+            body.modo-escuro .form-select {
+                background-color: #232b28 !important;
+                color: #ffffff !important;
+                border-color: #3a443f !important;
+            }
+
+                body.modo-escuro .form-control:focus {
+                    background-color: #29332f !important;
+                    color: #fff !important;
+                    border-color: var(--brand-primary) !important;
+                    box-shadow: 0 0 0 .2rem rgba(79, 179, 160, .25) !important;
+                }
+
+            body.modo-escuro .text-dark {
+                color: #f8f9fa !important;
+            }
+
+            body.modo-escuro .text-muted {
+                color: var(--brand-muted) !important;
+            }
+
+            body.modo-escuro h1,
+            body.modo-escuro h2,
+            body.modo-escuro h3,
+            body.modo-escuro h4,
+            body.modo-escuro h5,
+            body.modo-escuro h6,
+            body.modo-escuro p {
+                color: var(--brand-ink) !important;
+            }
+
+            body.modo-escuro a:not(.btn) {
+                color: var(--brand-primary) !important;
+            }
+
+                body.modo-escuro a:not(.btn):hover {
+                    color: var(--brand-primary-dark) !important;
+                }
+    </style>
+</head>
+<body>
+
+    <div class="faixa-topo"></div>
+
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-cpr mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/entidades">
+                <span class="marca-icone"><i class="fa-solid fa-shield-halved"></i></span>
+                <span>
+                    <span class="marca-titulo d-block">CPR DB</span>
+                    <span class="marca-subtitulo d-block">CMDCA · SP</span>
+                </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/entidades' or request.path == '/' %}active{% endif %}" href="/entidades">
+                            <i class="fa-solid fa-building"></i> Entidades
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/registros' %}active{% endif %}" href="/registros">
+                            <i class="fa-solid fa-folder-open"></i> Registros
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/servicos' %}active{% endif %}" href="/servicos">
+                            <i class="fa-solid fa-handshake"></i> Serviços
+                        </a>
+                    </li>
+                </ul>
+                <button id="btn-modo-escuro" class="btn btn-outline-light btn-sm ms-3" title="Alternar Modo Escuro">
+                    <i class="fa-solid fa-moon" id="icone-tema"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- O CONTEÚDO DAS OUTRAS TELAS ENTRA AQUI -->
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="rodape-cpr text-center py-4 mt-5">
+        <small>&copy; 2026 Sistema Interno da CPR - CMDCA<span class="ponto-acento">&bull;</span>Desenvolvido por Victor Martins :)</small>
+    </footer>
+
+    <!-- Scripts do Bootstrap, jQuery (para a máscara de CNPJ) e Ativação dos Tooltips -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+    <script>
+        // Ativa as legendas (tooltips) em todos os botões que tiverem o data-bs-toggle="tooltip"
+        $(document).ready(function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            // Máscara do CNPJ (já deixando pronto para os formulários)
+            $('.cnpj-mask').mask('00.000.000/0000-00', { reverse: true });
+            $('.sei_mask').mask('0000.0000/0000000-0');
+        });
+    </script>
+    <script>
+        const btnTema = document.getElementById('btn-modo-escuro');
+        const iconeTema = document.getElementById('icone-tema');
+        const corpo = document.body;
+
+        function aplicarTemaEscuro(ativo) {
+            corpo.classList.toggle('modo-escuro', ativo);
+            document.documentElement.setAttribute('data-bs-theme', ativo ? 'dark' : 'light');
+            iconeTema.classList.toggle('fa-moon', !ativo);
+            iconeTema.classList.toggle('fa-sun', ativo);
+        }
+
+        // 1. Ao carregar a página, verifica se o usuário já tinha escolhido o modo escuro antes
+        if (localStorage.getItem('tema') === 'escuro') {
+            aplicarTemaEscuro(true);
+        }
+
+        // 2. Ação do clique no botão
+        btnTema.addEventListener('click', function () {
+            const ativo = !corpo.classList.contains('modo-escuro');
+            aplicarTemaEscuro(ativo);
+            localStorage.setItem('tema', ativo ? 'escuro' : 'claro');
+        });
+    </script>
+</body>
+</html>

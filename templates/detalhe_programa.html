@@ -1,0 +1,197 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/servicos" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Voltar
+        </a>
+        <h2 class="mb-0">Dossiê do Programa <span class="text-muted">#{{ prog.id_programa }}</span></h2>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <a href="/programa/{{ prog.rowid }}/editar" class="btn btn-primary shadow-sm"><i class="fa-solid fa-pen"></i> Editar</a>
+
+        <a href="/servico/{{ prog.rowid }}/certificado" target="_blank" class="btn btn-success shadow-sm">
+            <i class="fa-solid fa-file-certificate"></i> Certificado de Programa
+        </a>
+
+        <button onclick="confirmarExclusaoPrograma('{{ prog.rowid }}')" class="btn btn-outline-danger shadow-sm">
+            <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+    </div>
+</div>
+
+<div class="alert alert-info shadow-sm d-flex justify-content-between align-items-center mb-4 border-info">
+    <div>
+        <h5 class="alert-heading mb-1"><i class="fa-solid fa-building-ngo"></i> Entidade Mantenedora</h5>
+        {% if ong %}
+        <p class="mb-0 fw-bold">{{ ong.sigla }} - {{ ong.nome_ong }}</p>
+        {% else %}
+        <p class="mb-0 text-danger"><i class="fa-solid fa-circle-exclamation"></i> Entidade não localizada (Registro: {{ prog.registro_se }}).</p>
+        {% endif %}
+        <small class="text-muted">CNPJ do Programa: {{ prog.cnpj_prog | formatar_cnpj if prog.cnpj_prog else '-' }}</small>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-light text-info border border-info fs-6 mb-2">Vínculo: {{ prog.registro_se }}</span><br>
+        {% if ong %}
+        <a href="/entidade/{{ ong.registro }}" class="btn btn-sm btn-info text-white mt-1">Ver Dossiê da ONG <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4 border-top-0 border-start-0 border-end-0 border-bottom border-5
+    {% if prog.situacao_se|upper == 'ATIVO' %}border-success{% elif prog.situacao_se|upper == 'VENCIDO' %}border-danger{% else %}border-secondary{% endif %}">
+
+    <div class="card-header bg-white pt-3 pb-2 d-flex justify-content-between align-items-center">
+        <h4 class="mb-0 text-primary">{{ prog.servico_programa if prog.servico_programa else 'Serviço Não Nomeado' }}</h4>
+        <span class="badge {% if prog.situacao_se|upper == 'ATIVO' %}bg-success{% elif prog.situacao_se|upper == 'VENCIDO' %}bg-danger{% else %}bg-secondary{% endif %} px-4 py-2 fs-5">
+            {{ prog.situacao_se if prog.situacao_se else 'Sem Status' }}
+        </span>
+    </div>
+
+    <div class="card-body">
+
+        <h5 class="text-primary mb-3"><i class="fa-solid fa-users"></i> Perfil e Capacidade de Atendimento</h5>
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Tipo de Serviço</p>
+                <p class="fs-6">{{ prog.tipo_se if prog.tipo_se else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Regime</p>
+                <p class="fs-6">{{ prog.regime_atendimento if prog.regime_atendimento else '-' }}</p>
+            </div>
+            <div class="col-md-2">
+                <p class="text-muted mb-1 fw-bold">Faixa Etária</p>
+                <p class="fs-6">{{ prog.faixa_etaria if prog.faixa_etaria else '-' }}</p>
+            </div>
+            <div class="col-md-2">
+                <p class="text-muted mb-1 fw-bold">Atendidos</p>
+                <p class="fs-6">{{ prog.atendidos if prog.atendidos else '-' }}</p>
+            </div>
+            <div class="col-md-2">
+                <p class="text-muted mb-1 fw-bold">Capacidade Máx.</p>
+                <p class="fs-6">{{ prog.numero_atendidos if prog.numero_atendidos else '-' }}</p>
+            </div>
+        </div>
+        <hr>
+
+        <h5 class="text-primary mb-3"><i class="fa-solid fa-map-location-dot"></i> Localização e Contato do Serviço</h5>
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <p class="text-muted mb-1 fw-bold">CEP</p>
+                <p class="fs-6">{{ prog.cep_se if prog.cep_se else '-' }}</p>
+            </div>
+            <div class="col-md-2">
+                <p class="text-muted mb-1 fw-bold">Número</p>
+                <p class="fs-6">{{ prog.numero_se if prog.numero_se else '-' }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="text-muted mb-1 fw-bold">Complemento</p>
+                <p class="fs-6">{{ prog.complemento_se if prog.complemento_se else '-' }}</p>
+            </div>
+            <div class="col-md-2">
+                <p class="text-muted mb-1 fw-bold">Telefone</p>
+                <p class="fs-6">{{ prog.telefone_se if prog.telefone_se else '-' }}</p>
+            </div>
+            <div class="col-md-2">
+                <p class="text-muted mb-1 fw-bold">Celular</p>
+                <p class="fs-6">{{ prog.celular_se if prog.celular_se else '-' }}</p>
+            </div>
+        </div>
+        <hr>
+
+        <h5 class="text-primary mb-3"><i class="fa-solid fa-file-shield"></i> Vistorias, Laudos e Convênios</h5>
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">AVCB (Bombeiros)</p>
+                <p class="fs-6">{{ prog.avcb | formatardata if prog.avcb else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Laudo de Habitabilidade</p>
+                <p class="fs-6">{{ prog.laudo_hab | formatardata if prog.laudo_hab else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Laudo de Segurança</p>
+                <p class="fs-6">{{ prog.laudo_seg | formatardata if prog.laudo_seg else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Licença PMSP</p>
+                <p class="fs-6">{{ prog.licenca_pmsp if prog.licenca_pmsp else '-' }}</p>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p class="text-muted mb-1 fw-bold">Termo de Convênio</p>
+                <p class="fs-6">{{ prog.termo_convenio | formatardata if prog.termo_convenio else '-' }}</p>
+            </div>
+            <div class="col-md-6">
+                <p class="text-muted mb-1 fw-bold">Status Secundário (Situação 2)</p>
+                <p class="fs-6">{{ prog.situacao2 if prog.situacao2 else '-' }}</p>
+            </div>
+        </div>
+        <hr>
+
+        <h5 class="text-primary mb-3"><i class="fa-solid fa-folder-open"></i> Processos e Cronograma</h5>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Processo SEI</p>
+                <p class="fs-6">{{ prog.processo_sei_prog | formatar_sei if prog.processo_sei_prog else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Proc. Atualização</p>
+                <p class="fs-6">{{ prog.proc_prog_atualizacao if prog.proc_prog_atualizacao else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Nº Curso Aprendiz</p>
+                <p class="fs-6">{{ prog.n_curso_aprendiz if prog.n_curso_aprendiz else '-' }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Resolução</p>
+                <p class="fs-6">{{ prog.resolucao_se if prog.resolucao_se else '-' }}</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Data RO</p>
+                <p class="fs-6">{{ prog.data_ro_se | formatardata }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Vencimento</p>
+                <p class="fs-6 fw-bold {% if prog.situacao_se|upper == 'VENCIDO' %}text-danger{% endif %}">{{ prog.vencimento_prog_se | formatardata }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Data D.O.</p>
+                <p class="fs-6">{{ prog.data_do_se }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Página D.O.</p>
+                <p class="fs-6">{{ prog.pag_do_se }}</p>
+            </div>
+            <div class="col-md-3">
+                <p class="text-muted mb-1 fw-bold">Protocolo / CPR</p>
+                <p class="fs-6">Prot: {{ prog.protocolo_se | formatardata if prog.protocolo_se else '-' }}<br>CPR: {{ prog.cpr_se | formatardata if prog.cpr_se else '-' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function confirmarExclusaoPrograma(id_linha) {
+        // 1ª Trava: Confirmação simples
+        if (confirm('⚠️ PRIMEIRA CONFIRMAÇÃO:\nVocê tem certeza que deseja apagar definitivamente este programa/serviço?')) {
+
+            // 2ª Trava: Exigência de digitação para evitar acidentes com clique duplo
+            let texto = prompt('🛑 SEGUNDA CONFIRMAÇÃO:\nEsta ação é irreversível e removerá todos os dados de laudos, capacidades e cronogramas deste serviço.\n\nPara prosseguir, digite exatamente a palavra EXCLUIR no campo abaixo:');
+
+            if (texto === 'EXCLUIR') {
+                // Se digitou corretamente, envia para a rota do Python usando o rowid
+                window.location.href = '/programa/' + id_linha + '/excluir';
+            } else if (texto !== null) {
+                alert('❌ Validação incorreta. A exclusão foi cancelada por segurança.');
+            }
+        }
+    }
+</script>
+{% endblock %}

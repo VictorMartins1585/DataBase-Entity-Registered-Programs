@@ -1,0 +1,15 @@
+# Bloquear o Banco de Dados
+*.db
+*.sqlite
+sistema
+
+# Bloquear Ambientes Virtuais e Cache do Python
+env/
+__pycache__/
+
+# Bloquear arquivos de configuração do Visual Studio
+.vs/
+
+# Bloquear seus backups locais
+BackupBanco/
+Fazer_Backup.bat
