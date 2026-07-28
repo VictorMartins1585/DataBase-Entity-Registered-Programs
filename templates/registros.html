@@ -57,7 +57,7 @@
             </a>
 
             {% if status and status|upper not in ['ATIVO', 'AGUARDANDO RO', 'VENCIDO'] %}
-            <span class="btn btn-sm btn-dark rounded-pill fw-bold">{{ status|upper }}</span>
+            <span class="btn btn-sm btn-white rounded-pill fw-0 d-none">{{ status|upper }}</span>
             {% endif %}
         </div>
 
