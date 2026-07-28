@@ -202,13 +202,13 @@ def editar_entidade(id_registro):
         ong.email = request.form.get('email')
         ong.telefone1 = request.form.get('telefone1')
         ong.telefone2 = request.form.get('telefone2')
-        ong.celular = request.form.get('celular')
+        ong.cel = request.form.get('cel')
         ong.site = request.form.get('site')
         
         # Documentação e Processos
         ong.processo_sei = request.form.get('processo_sei')
         ong.proc_atualizacao = request.form.get('proc_atualizacao')
-        ong.tipo_atendimento = request.form.get('tipo_atendimento')
+        ong.tipo_de_atendimento = request.form.get('tipo_de_atendimento')
         ong.documento_sede = request.form.get('documento_sede')
         
         db.session.commit()
@@ -216,7 +216,6 @@ def editar_entidade(id_registro):
         
     return render_template('editar_entidade.html', ong=ong)
         
-    return render_template('editar_entidade.html', ong=ong)
 
 @app.route('/registros')
 def listar_registros():
@@ -400,7 +399,6 @@ def editar_registro(id):
         reg.solicitacao = request.form.get('solicitacao')
         reg.processo_fisico = request.form.get('processo_fisico')
         reg.resolucao = request.form.get('resolucao')
-        reg.situacao = request.form.get('situacao')
         
         reg.data_ro = request.form.get('data_ro')
         reg.vencimento = request.form.get('vencimento')
@@ -681,12 +679,6 @@ def excluir_programa(id_linha):
             return f"Erro interno ao tentar excluir o programa: {e}", 500
             
     return redirect('/servicos')
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///seu_banco.db?timeout=30'
-
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "connect_args": {"timeout": 30}
-}
 
 @app.route('/entidade/<path:registro>/certificado')
 def gerar_certificado(registro):
