@@ -6,7 +6,7 @@ import pandas as pd
 import io
 import sqlite3
 import unicodedata
-import re
+import traceback
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text, or_
@@ -387,7 +387,6 @@ def detalhe_registro(id):
     return render_template('detalhe_registro.html', reg=reg, ong=ong)
 
 
-
 @app.route('/registro/<int:id>/editar', methods=['GET', 'POST'])
 def editar_registro(id):
     reg = Registro.query.get(id)
@@ -399,6 +398,7 @@ def editar_registro(id):
         reg.solicitacao = request.form.get('solicitacao')
         reg.processo_fisico = request.form.get('processo_fisico')
         reg.resolucao = request.form.get('resolucao')
+        reg.situacao = request.form.get('situacao')
         
         reg.data_ro = request.form.get('data_ro')
         reg.vencimento = request.form.get('vencimento')
@@ -896,23 +896,18 @@ def api_dados_registro():
 @app.template_filter('data_br')
 def formatar_data_br(valor):
     if not valor:
-        return "" 
-    
+        return ""
+
     try:
         if isinstance(valor, str):
-            if " " in valor:
-                valor = valor.split(" ")[0]
-            if "/" in valor:
-                return valor
-
             data_obj = datetime.strptime(valor, '%Y-%m-%d')
-            return data_obj.strftime('%d/%m/%Y') 
-        
+            return data_obj.strftime('%d/%m/%Y')
+
         if hasattr(valor, 'strftime'):
             return valor.strftime('%d/%m/%Y')
-            
+
     except ValueError:
-        return valor 
+        return valor
 
     return valor
 
