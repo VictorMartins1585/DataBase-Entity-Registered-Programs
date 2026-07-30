@@ -284,7 +284,7 @@
         <p class="linha-dado"><span class="rotulo">Presidência:</span> {{ ong.presidencia if ong.presidencia else '' }}</p>
 
         <p class="linha-dado" style="margin-top: 25px;">
-            <span class="rotulo">Registro aprovado na Reunião Ordinária de:</span> {{ reg.data_ro | formatardata if reg and reg.data_ro else '-' }}
+            <span class="rotulo">Registro aprovado na Reunião Ordinária de:</span> {{ reg.data_ro | formatardata | data_br if reg and reg.data_ro else '-' }}
         </p>
         <p class="linha-dado">
             <span class="rotulo">Validade:</span> {{ reg.validade if reg and reg.validade else '-' }}
@@ -294,11 +294,11 @@
         <p class="linha-dado">
             <span class="rotulo">Processo SEI:</span> {{ ong.processo_sei | formatar_sei if ong.processo_sei else '-' }}
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <span class="rotulo" style="min-width: auto;">Publicação D.O.C.:</span> {{ reg.data_do | formatardata if reg and reg.data_do else '-' }}
+            <span class="rotulo" style="min-width: auto;">Publicação D.O.C.:</span> {{ reg.data_do | formatardata | data_br if reg and reg.data_do else '-' }}
         </p>
 
         <div class="caixa-validade">
-            Registro válido até: {{ reg.vencimento | formatardata if reg and reg.vencimento else '-' }}
+            Registro válido até: {{ reg.vencimento | formatardata | data_br if reg and reg.vencimento else '-' }}
         </div>
 
         <table class="tabela-assinaturas">

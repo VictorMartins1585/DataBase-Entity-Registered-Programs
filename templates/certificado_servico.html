@@ -288,7 +288,7 @@
         <p class="linha-dado"><span class="rotulo">CNPJ:</span> {{ ong.cnpj | formatar_cnpj }}</p>
 
         <div class="caixa-validade">
-            Registro válido até: {{ reg.vencimento | formatardata if reg and reg.vencimento else 'Consulte a validade do Registro Geral' }}
+            Registro válido até: {{ reg.vencimento | formatardata | data_br if reg and reg.vencimento else 'Consulte a validade do Registro Geral' }}
         </div>
 
         <table class="tabela-assinaturas">
@@ -325,7 +325,7 @@
         </p>
         <p class="linha-dado"><span class="rotulo">Nº Curso Aprendiz:</span> {{ servico.n_curso_aprendiz if servico.n_curso_aprendiz else '-' }}</p>
         <p class="linha-dado"><span class="rotulo">Processo SEI:</span> {{ servico.processo_sei_prog | formatar_sei if servico.processo_sei_prog else '-' }}</p>
-        <p class="linha-dado"><span class="rotulo">Vencimento:</span> <strong>{{ servico.vencimento_prog_se | formatardata if servico.vencimento_prog_se else '-' }}</strong></p>
+        <p class="linha-dado"><span class="rotulo">Vencimento:</span> <strong>{{ servico.vencimento_prog_se | formatardata | data_br if servico.vencimento_prog_se else '-' }}</strong></p>
 
     </div>
 
