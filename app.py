@@ -216,15 +216,11 @@ def editar_entidade(id_registro):
         
     return render_template('editar_entidade.html', ong=ong)
         
+def aplicar_filtros_registros(query, termo_busca, filtro_status):
+    """Aplica a busca textual e o filtro de situação numa query de Registro.
+    Usado tanto pela listagem quanto pela exportação em Excel, pra garantir
+    que os dois sempre respeitem exatamente os mesmos filtros."""
 
-@app.route('/registros')
-def listar_registros():
-    termo_busca = request.args.get('busca', '')
-    filtro_status = request.args.get('status', '')
-    pagina_atual = request.args.get('page', 1, type=int)
-    
-    query = Registro.query
-    
     if termo_busca:
         termo = f"%{termo_busca}%"
         query = query.filter(
@@ -240,27 +236,91 @@ def listar_registros():
                 Registro.cpr.ilike(termo)
             )
         )
-        
+
     if filtro_status == 'A_VENCER':
         hoje = datetime.now().strftime('%Y-%m-%d')
-        daqui_30_dias = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
-        
+        daqui_90_dias = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
+
         query = query.filter(
             Registro.vencimento >= hoje,
-            Registro.vencimento <= daqui_30_dias
+            Registro.vencimento <= daqui_90_dias
         )
-        
+
         query = query.order_by(Registro.vencimento.asc())
-        
+
     elif filtro_status:
         query = query.filter(Registro.situacao.ilike(filtro_status))
-        
+
     if filtro_status != 'A_VENCER':
         query = query.order_by(text('rowid DESC'))
-        
+
+    return query
+
+@app.route('/registros')
+
+def listar_registros():
+
+    termo_busca = request.args.get('busca', '')
+    filtro_status = request.args.get('status', '')
+    pagina_atual = request.args.get('page', 1, type=int)
+    query = aplicar_filtros_registros(Registro.query, termo_busca, filtro_status)
     paginacao = query.paginate(page=pagina_atual, per_page=20, error_out=False)
-    
+
     return render_template('registros.html', registros=paginacao, busca=termo_busca, status=filtro_status)
+
+@app.route('/registros/exportar-excel')
+
+def exportar_registros_excel():
+    """Exporta pra Excel os registros que batem com os filtros atuais da tela
+    (mesma busca e situação da URL), já cruzando com os dados da entidade
+    correspondente (nome, e-mail, CNPJ etc)."""
+
+    termo_busca = request.args.get('busca', '')
+    filtro_status = request.args.get('status', '')
+
+    query = aplicar_filtros_registros(Registro.query, termo_busca, filtro_status)
+    registros_filtrados = query.all()
+
+    linhas = []
+
+    for reg in registros_filtrados:
+        ong = Entidade.query.filter_by(registro=reg.registro_reg).first()
+
+        linhas.append({
+            'Registro': reg.registro_reg,
+            'Situação': reg.situacao,
+            'Data RO': converter_para_data(reg.data_ro),
+            'Vencimento': converter_para_data(reg.vencimento),
+            'Data DO': converter_para_data(reg.data_do),
+            'Solicitação': reg.solicitacao,
+            'Processo Físico': reg.processo_fisico,
+            'Resolução': reg.resolucao,
+            'Validade': reg.validade,
+            'CPR': formatardata(reg.cpr),
+            'Protocolo': formatardata(reg.protocolo),
+            'Observações': reg.observacoes,
+            'Nome da Entidade': ong.nome_ong if ong else '',
+            'Sigla': ong.sigla if ong else '',
+            'CNPJ': formatar_cnpj(ong.cnpj) if ong and ong.cnpj else '',
+            'Presidência': ong.presidencia if ong else '',
+            'E-mail': ong.email if ong else '',
+            'Telefone 1': ong.telefone1 if ong else '',
+            'Telefone 2': ong.telefone2 if ong else '',
+            'Celular': ong.cel if ong else '',
+        })
+
+    colunas = ['Registro', 'Situação', 'Data RO', 'Vencimento', 'Data DO', 'Solicitação',
+               'Processo Físico', 'Resolução', 'Validade', 'CPR', 'Protocolo', 'Observações',
+               'Nome da Entidade', 'Sigla', 'CNPJ', 'Presidência', 'E-mail',
+               'Telefone 1', 'Telefone 2', 'Celular']
+
+    df = pd.DataFrame(linhas, columns=colunas)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Registros Filtrados', index=False)
+    output.seek(0)
+
+    return send_file(output, download_name='Registros_Filtrados.xlsx', as_attachment=True)
 
 @app.route('/servicos')
 def listar_servicos():
@@ -843,27 +903,6 @@ def formatar_cnpj(valor):
         return f"{numeros[:2]}.{numeros[2:5]}.{numeros[5:8]}/{numeros[8:12]}-{numeros[12:]}"
     
     return valor
-
-@app.route('/exportar-excel')
-def exportar_excel():
-    output = io.BytesIO()
-    
-    conexao = sqlite3.connect('C:/Users/x539532/Downloads/Banco_de_Dados_CPR/sistema.db') 
-    
-    df_entidades = pd.read_sql_query("SELECT * FROM entidades", conexao)
-    df_registros = pd.read_sql_query("SELECT * FROM registros", conexao)
-    df_servicos = pd.read_sql_query("SELECT * FROM servicos", conexao)
-    
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_entidades.to_excel(writer, sheet_name='Entidades (ONGs)', index=False)
-        df_registros.to_excel(writer, sheet_name='Registros', index=False)
-        df_servicos.to_excel(writer, sheet_name='Serviços', index=False)
-        
-    conexao.close()
-    
-    output.seek(0)
-    
-    return send_file(output, download_name='Extracao_Sistema_CPR.xlsx', as_attachment=True)
 
 @app.route('/api/dados_registro')
 def api_dados_registro():
