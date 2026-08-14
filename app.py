@@ -168,8 +168,6 @@ def listar_entidades():
         
     return render_template('entidades.html', entidades=paginacao, busca=termo_busca)
 
-
-
 @app.route('/entidade/<path:id_registro>')
 def detalhe_entidade(id_registro):
     ong = Entidade.query.get(id_registro)
@@ -177,7 +175,10 @@ def detalhe_entidade(id_registro):
     if not ong:
         return redirect(url_for('listar_entidades'))
         
-    return render_template('detalhe_entidade.html', ong=ong)
+    registro_vinculado = Registro.query.filter_by(registro_reg=ong.registro).first()
+    tem_registro = True if registro_vinculado else False
+        
+    return render_template('detalhe_entidade.html', ong=ong, tem_registro=tem_registro)
 
 @app.route('/entidade/<path:id_registro>/editar', methods=['GET', 'POST'])
 def editar_entidade(id_registro):
@@ -391,13 +392,13 @@ def novo_registro_geral():
         entidade_valida = Entidade.query.filter_by(registro=registro_digitado).first()
         
         if not entidade_valida:
-            entidades = Entidade.query.all()
+            entidades = entidades_sem_registro()
             return render_template('novo_registro.html', entidades=entidades, erro="Erro: O número de registro digitado não pertence a nenhuma entidade cadastrada!")
 
         registro_existente = Registro.query.filter_by(registro_reg=registro_digitado).first()
         
         if registro_existente:
-            entidades = Entidade.query.all()
+            entidades = entidades_sem_registro()
             return render_template('novo_registro.html', entidades=entidades, erro=f"Erro: Já existe um Registro cadastrado para a entidade {registro_digitado}!")
             
         todos_registros = Registro.query.all()
@@ -439,8 +440,10 @@ def novo_registro_geral():
         db.session.commit()
         return redirect('/registros')
         
-    entidades = Entidade.query.all()
-    return render_template('novo_registro.html', entidades=entidades)
+    entidades = entidades_sem_registro()
+    registro_url = request.args.get('registro_reg', '')
+    
+    return render_template('novo_registro.html', entidades=entidades, registro_preenchido=registro_url)
 
 @app.route('/registro/<int:id>')
 def detalhe_registro(id):

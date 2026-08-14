@@ -22,14 +22,18 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Entidade Vinculada</label>
-                    <input type="text" name="registro_reg" list="entidades-list" class="form-control" placeholder="Digite o nº de registro ou nome da ONG para buscar..." required autocomplete="on">
+                    <select name="registro_reg" class="form-select" required>
+                        <option value="" disabled {% if not registro_preenchido %}selected{% endif %}>
+                            Selecione a ONG da lista...
+                        </option>
 
-                    <datalist id="entidades-list">
                         {% for e in entidades %}
-                        <option value="{{ e.registro }}">{{ e.sigla }} - {{ e.nome_ong }}</option>
+                        <option value="{{ e.registro }}" {% if e.registro == registro_preenchido %}selected{% endif %}>
+                            {{ e.registro }} - {{ e.sigla }} ({{ e.nome_ong }})
+                        </option>
                         {% endfor %}
-                    </datalist>
-                    <small class="text-muted">Selecione uma opção válida da lista de busca automática.</small>
+                    </select>
+                    <small class="text-muted">Apenas entidades pendentes de registro aparecem nesta lista.</small>
 
                 </div>
                 <div class="col-md-3">
