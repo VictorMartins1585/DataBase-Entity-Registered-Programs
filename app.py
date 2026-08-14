@@ -376,6 +376,13 @@ def excluir_registro(id):
             
     return redirect('/registros')
 
+def entidades_sem_registro():
+    """Entidades que ainda não têm nenhum Registro vinculado (pelo número de registro).
+    Usado tanto pra alimentar a busca em 'Novo Registro' quanto o aviso na tela de detalhe."""
+    numeros_com_registro = db.session.query(Registro.registro_reg).filter(Registro.registro_reg.isnot(None))
+
+    return Entidade.query.filter(~Entidade.registro.in_(numeros_com_registro)).order_by(Entidade.nome_ong).all()
+
 @app.route('/registro/novo', methods=['GET', 'POST'])
 def novo_registro_geral():
     if request.method == 'POST':

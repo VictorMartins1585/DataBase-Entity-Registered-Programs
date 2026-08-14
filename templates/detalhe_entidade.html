@@ -19,71 +19,83 @@
     </div>
 </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fa-solid fa-building"></i> Informações Institucionais</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>CNPJ:</strong> <span class="cnpj-mask">{{ ong.cnpj }}</span></p>
-                    <p><strong>Sigla OSC:</strong> {{ ong.sigla }}</p>
-                    <p><strong>Nome Oficial:</strong> {{ ong.nome_ong }}</p>
-                </div>
-            </div>
-        </div>
+{% if not tem_registro %}
+<div class="alert alert-warning d-flex justify-content-between align-items-center shadow-sm mb-4" role="alert">
+    <div>
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        Esta entidade ainda não tem um <strong>Registro</strong> vinculado. O certificado completo só pode ser gerado depois que o registro for cadastrado.
+    </div>
+    <a href="{{ url_for('novo_registro_geral', registro_reg=ong.registro) }}" class="btn btn-warning btn-sm fw-bold text-dark flex-shrink-0 ms-3">
+        <i class="fa-solid fa-plus"></i> Completar Cadastro
+    </a>
+</div>
+{% endif %}
 
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fa-solid fa-address-book"></i> Contato e Liderança</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Presidente:</strong> {{ ong.presidencia }}</p>
-                    <p><strong>E-mail:</strong> <a href="mailto:{{ ong.email }}">{{ ong.email }}</a></p>
-                </div>
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fa-solid fa-building"></i> Informações Institucionais</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>CNPJ:</strong> <span class="cnpj-mask">{{ ong.cnpj }}</span></p>
+                <p><strong>Sigla OSC:</strong> {{ ong.sigla }}</p>
+                <p><strong>Nome Oficial:</strong> {{ ong.nome_ong }}</p>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mt-2">
-        <div class="card-header bg-light">
-            <h5 class="mb-0"><i class="fa-solid fa-folder-open"></i> Outras Informações </h5>
-        </div>
-        <div class="card-body">
-            <p><strong>CEP:</strong> {{ ong.cep }}</p>
-            <p><strong>Número:</strong> {{ ong.numero | limpar_numero }}</p>
-            <p><strong>Complemento:</strong> {{ ong.complemento }}</p>
-            <p><strong>Telefone 1:</strong> {{ ong.telefone1 }}</p>
-            <p><strong>Telefone 2:</strong> {{ ong.telefone2 }}</p>
-            <p><strong>Celular:</strong> {{ ong.celular }}</p>
-            <p>
-                <strong>Site:</strong>
-                {% if ong.site %}
-                <a href="{{ ong.site }}" target="_blank">{{ ong.site }}</a>
-                {% else %}
-                -
-                {% endif %}
-            </p>
-            <p><strong>Processo SEI:</strong> <span class="sei-mask">{{ ong.processo_sei | formatar_sei }}</span></p>
-            <p><strong>Proc Atualização:</strong> {{ ong.proc_atualizacao }}</p>
-            <p><strong>Tipo de Atendimento:</strong> {{ ong.tipo_atendimento }}</p>
-            <p><strong>Documento Sede:</strong> {{ ong.documento_sede }}</p>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fa-solid fa-address-book"></i> Contato e Liderança</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Presidente:</strong> {{ ong.presidencia }}</p>
+                <p><strong>E-mail:</strong> <a href="mailto:{{ ong.email }}">{{ ong.email }}</a></p>
+            </div>
         </div>
     </div>
-    <script>
-        function confirmarExclusao(registro, identificador) {
-            if (confirm('⚠️ PRIMEIRA CONFIRMAÇÃO:\nVocê tem certeza que deseja iniciar a exclusão definitiva da entidade ' + identificador + '?')) {
+</div>
 
-                // Texto de aviso ATUALIZADO para a nova regra
-                let texto = prompt('🛑 SEGUNDA CONFIRMAÇÃO:\nEsta ação apagará APENAS o cadastro da ONG. O histórico de processos e serviços não será afetado.\n\nPara confirmar, digite exatamente a palavra EXCLUIR no campo abaixo:');
+<div class="card shadow-sm mt-2">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fa-solid fa-folder-open"></i> Outras Informações </h5>
+    </div>
+    <div class="card-body">
+        <p><strong>CEP:</strong> {{ ong.cep }}</p>
+        <p><strong>Número:</strong> {{ ong.numero | limpar_numero }}</p>
+        <p><strong>Complemento:</strong> {{ ong.complemento }}</p>
+        <p><strong>Telefone 1:</strong> {{ ong.telefone1 }}</p>
+        <p><strong>Telefone 2:</strong> {{ ong.telefone2 }}</p>
+        <p><strong>Celular:</strong> {{ ong.celular }}</p>
+        <p>
+            <strong>Site:</strong>
+            {% if ong.site %}
+            <a href="{{ ong.site }}" target="_blank">{{ ong.site }}</a>
+            {% else %}
+            -
+            {% endif %}
+        </p>
+        <p><strong>Processo SEI:</strong> <span class="sei-mask">{{ ong.processo_sei | formatar_sei }}</span></p>
+        <p><strong>Proc Atualização:</strong> {{ ong.proc_atualizacao }}</p>
+        <p><strong>Tipo de Atendimento:</strong> {{ ong.tipo_atendimento }}</p>
+        <p><strong>Documento Sede:</strong> {{ ong.documento_sede }}</p>
+    </div>
+</div>
+<script>
+    function confirmarExclusao(registro, identificador) {
+        if (confirm('⚠️ PRIMEIRA CONFIRMAÇÃO:\nVocê tem certeza que deseja iniciar a exclusão definitiva da entidade ' + identificador + '?')) {
 
-                if (texto === 'EXCLUIR') {
-                    window.location.href = '/entidade/' + registro + '/excluir';
-                } else if (texto !== null) {
-                    alert('❌ Palavra incorreta. A exclusão foi cancelada por segurança.');
-                }
+            // Texto de aviso ATUALIZADO para a nova regra
+            let texto = prompt('🛑 SEGUNDA CONFIRMAÇÃO:\nEsta ação apagará APENAS o cadastro da ONG. O histórico de processos e serviços não será afetado.\n\nPara confirmar, digite exatamente a palavra EXCLUIR no campo abaixo:');
+
+            if (texto === 'EXCLUIR') {
+                window.location.href = '/entidade/' + registro + '/excluir';
+            } else if (texto !== null) {
+                alert('❌ Palavra incorreta. A exclusão foi cancelada por segurança.');
             }
         }
-    </script>
+    }
+</script>
     {% endblock %}
