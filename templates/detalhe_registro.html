@@ -27,7 +27,7 @@
     <div>
         <h5 class="alert-heading mb-1"><i class="fa-solid fa-building-ngo"></i> Instituição Vinculada</h5>
         {% if ong %}
-        <p class="mb-0 fw-bold">{{ ong.sigla }} - {{ ong.nome_ong }}</p>
+        <p class="mb-0 fw-bold"> {{ ong.nome_ong }}</p>
         {% else %}
         <p class="mb-0 text-danger"><i class="fa-solid fa-circle-exclamation"></i> Entidade não localizada no banco de dados.</p>
         {% endif %}

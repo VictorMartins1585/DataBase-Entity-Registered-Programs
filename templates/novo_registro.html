@@ -29,7 +29,7 @@
 
                         {% for e in entidades %}
                         <option value="{{ e.registro }}" {% if e.registro == registro_preenchido %}selected{% endif %}>
-                            {{ e.registro }} - {{ e.sigla }} ({{ e.nome_ong }})
+                            {{ e.registro }} - ({{ e.nome_ong }})
                         </option>
                         {% endfor %}
                     </select>

@@ -26,7 +26,7 @@
 
                     <datalist id="entidades-list">
                         {% for e in entidades %}
-                        <option value="{{ e.registro }}">{{ e.sigla }} - {{ e.nome_ong }}</option>
+                        <option value="{{ e.registro }}"> {{ e.registro }} - {{ e.nome_ong }}</option>
                         {% endfor %}
                     </datalist>
                 </div>
@@ -36,7 +36,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold">CNPJ do Programa</label>
-                    <input type="text" name="cnpj_prog" id="cnpj_prog" class="form-control" placeholder="00.000.000/0000-00">
+                    <input type="text" name="cnpj_prog" id="cnpj_prog" class="form-control" placeholder="00.000.000/0000-00" oninput="mascaraCNPJ(this)" maxlength="18">
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold">ID do Programa</label>
-                    <input type="text" name="id_programa" class="form-control" placeholder="Ex: 123/25">
+                    <input type="text" name="id_programa" class="form-control">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Situação Secundária</label>
@@ -208,17 +208,17 @@
                 .then(response => response.json())
                 .then(data => {
                     if (!data.erro) {
-                        // Preenche os campos do Serviço exatamente como no seu banco de dados
-                        if (document.getElementById('cnpj_prog')) document.getElementById('cnpj_prog').value = data.cnpj;
-                        if (document.getElementById('resolucao_se')) document.getElementById('resolucao_se').value = data.resolucao;
-                        if (document.getElementById('vencimento_prog_se')) document.getElementById('vencimento_prog_se').value = data.vencimento;
-                        if (document.getElementById('data_do_se')) document.getElementById('data_do_se').value = data.data_do;
-                        if (document.getElementById('data_ro_se')) document.getElementById('data_ro_se').value = data.data_ro;
-                        if (document.getElementById('processo_sei_prog')) document.getElementById('processo_sei_prog').value = data.processo_sei;
-                        if (document.getElementById('situacao_se')) document.getElementById('situacao_se').value = data.situacao;
-                        if (document.getElementById('telefone_se')) document.getElementById('telefone_se').value = data.telefone;
-                        if (document.getElementById('protocolo_se')) document.getElementById('protocolo_se').value = data.protocolo;
-                        if (document.getElementById('cpr_se')) document.getElementById('cpr_se').value = data.cpr;
+                        if (document.getElementById('cnpj_prog')) {
+                            let cnpjBruto = data.cnpj || "";
+
+                            let cnpjLimpo = cnpjBruto.replace(/\D/g, "");
+
+                            if (cnpjLimpo.length === 14) {
+                                cnpjBruto = cnpjLimpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+                            }
+
+                            document.getElementById('cnpj_prog').value = cnpjBruto;
+                        }
                     } else {
                         alert("Atenção: Esse número de Registro não foi encontrado na base de Entidades.");
                     }
@@ -269,6 +269,21 @@
         valor = valor.replace(/\D/g, "");
         valor = valor.substring(0, 8);
         valor = valor.replace(/^(\d{5})(\d)/, "$1-$2");
+
+        campo.value = valor;
+    }
+</script>
+<script>
+    function mascaraCNPJ(campo) {
+        let valor = campo.value.replace(/\D/g, ""); // Limpa letras e símbolos
+
+        if (valor.length > 14) valor = valor.substring(0, 14); // Limita a 14 números
+
+        // Coloca os pontos, barra e traço gradativamente
+        valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
+        valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+        valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2");
+        valor = valor.replace(/(\d{4})(\d)/, "$1-$2");
 
         campo.value = valor;
     }
