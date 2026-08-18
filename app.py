@@ -298,7 +298,7 @@ def exportar_registros_excel():
             'Resolução': reg.resolucao,
             'Validade': reg.validade,
             'CPR': formatardata(reg.cpr),
-            'Protocolo': formatardata(reg.protocolo),
+            'Protocolo': converter_para_data(reg.protocolo),
             'Observações': reg.observacoes,
             'Nome da Entidade': ong.nome_ong if ong else '',
             'Sigla': ong.sigla if ong else '',
@@ -323,14 +323,12 @@ def exportar_registros_excel():
 
     return send_file(output, download_name='Registros_Filtrados.xlsx', as_attachment=True)
 
-@app.route('/servicos')
-def listar_servicos():
-    termo_busca = request.args.get('q', '').strip()
-    page = request.args.get('page', 1, type=int)
-    
+def aplicar_filtros_servicos(query, termo_busca):
+
+    """Aplica a busca textual numa query de Servico. Usado pela listagem e pela exportação."""
     if termo_busca:
         busca_formatada = f"%{termo_busca}%"
-        servicos = Servico.query.filter(
+        query = query.filter(
             or_(
                 Servico.registro_se.ilike(busca_formatada),
                 Servico.servico_programa.ilike(busca_formatada),
@@ -339,12 +337,71 @@ def listar_servicos():
                 Servico.resolucao_se.ilike(busca_formatada),
                 Servico.situacao_se.ilike(busca_formatada)
             )
-        ).order_by(Servico.rowid.desc()).paginate(page=page, per_page=20)
-    else:
-        servicos = Servico.query.order_by(Servico.rowid.desc()).paginate(page=page, per_page=20)
-        
+        )
+    return query.order_by(Servico.rowid.desc())
+
+@app.route('/servicos')
+def listar_servicos():
+    termo_busca = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    query = aplicar_filtros_servicos(Servico.query, termo_busca)
+    servicos = query.paginate(page=page, per_page=20)
+
     return render_template('servicos.html', servicos=servicos, termo_busca=termo_busca)
 
+@app.route('/servicos/exportar-excel')
+def exportar_servicos_excel():
+    """Exporta pra Excel os serviços que batem com o filtro atual da tela (mesma
+    busca 'q' da URL), cruzando com os dados da entidade correspondente."""
+    termo_busca = request.args.get('q', '').strip()
+
+    query = aplicar_filtros_servicos(Servico.query, termo_busca)
+    servicos_filtrados = query.all()
+
+    linhas = []
+    for serv in servicos_filtrados:
+        ong = Entidade.query.filter_by(registro=serv.registro_se).first()
+
+        data_ro_fmt = formatar_data_br(formatardata(serv.data_ro_se))
+        vencimento_fmt = formatar_data_br(formatardata(serv.vencimento_prog_se))
+        data_do_fmt = formatar_data_br(formatardata(serv.data_do_se))
+        data_do_fmt = formatar_data_br(formatardata(serv.data_do_se))
+        protocolo_se_fmt = formatar_data_br(formatardata(serv.protocolo_se))
+
+        linhas.append({
+            'Registro': serv.registro_se,
+            'Programa/Serviço': serv.servico_programa,
+            'Tipo': serv.tipo_se,
+            'Situação': serv.situacao_se,
+            'CNPJ do Programa': formatar_cnpj(serv.cnpj_prog) if serv.cnpj_prog else '',
+            'Regime de Atendimento': serv.regime_atendimento,
+            'Nº de Atendidos': serv.numero_atendidos,
+            'Faixa Etária': serv.faixa_etaria,
+            'Resolução': serv.resolucao_se,
+            'Processo SEI': formatar_sei(serv.processo_sei_prog) if serv.processo_sei_prog else '',
+            'Data RO': data_ro_fmt,
+            'Data D.O.': data_do_fmt,
+            'Vencimento': vencimento_fmt,
+            'Protocolo': protocolo_se_fmt,
+            'Telefone': serv.telefone_se,
+            'Celular': serv.celular_se,
+            'Nome da Entidade': ong.nome_ong if ong else '',
+            'Sigla': ong.sigla if ong else '',
+            'E-mail': ong.email if ong else '',
+            'Presidência': ong.presidencia if ong else '',
+        })
+    colunas = ['Registro', 'Programa/Serviço', 'Tipo', 'Situação', 'CNPJ do Programa',
+               'Regime de Atendimento', 'Nº de Atendidos', 'Faixa Etária', 'Resolução',
+               'Processo SEI', 'Data RO', 'Data D.O.', 'Vencimento', 'Protocolo',
+               'Telefone', 'Celular', 'Nome da Entidade', 'Sigla', 'E-mail', 'Presidência']
+    df = pd.DataFrame(linhas, columns=colunas)
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Serviços Filtrados', index=False)
+    output.seek(0)
+
+    return send_file(output, download_name='Servicos_Filtrados.xlsx', as_attachment=True)
 
 @app.route('/entidade/<path:id_registro>/excluir')
 def excluir_entidade(id_registro):

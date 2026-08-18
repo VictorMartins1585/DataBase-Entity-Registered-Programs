@@ -8,11 +8,14 @@
     <h2 class="mb-0">Cadastrar Novo Programa / Serviço</h2>
 </div>
 
-{% if erro %}
-<div class="alert alert-danger shadow-sm" role="alert">
-    <i class="fa-solid fa-triangle-exclamation"></i> {{ erro }}
+<div id="alerta-container">
+    {% if erro %}
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa-solid fa-triangle-exclamation"></i> <strong>Erro:</strong> {{ erro }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
 
 <div class="card shadow-sm border-primary">
     <div class="card-body">
@@ -220,7 +223,14 @@
                             document.getElementById('cnpj_prog').value = cnpjBruto;
                         }
                     } else {
-                        alert("Atenção: Esse número de Registro não foi encontrado na base de Entidades.");
+                        document.getElementById('alerta-container').innerHTML = `
+                            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                                <i class="fa-solid fa-circle-exclamation"></i> <strong>Atenção:</strong> A entidade <b>${registro}</b> não foi encontrada na base. Verifique se o número foi digitado corretamente.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        `;
+
+                        if (document.getElementById('cnpj_prog')) document.getElementById('cnpj_prog').value = "";
                     }
                 })
                 .catch(error => {
@@ -275,11 +285,10 @@
 </script>
 <script>
     function mascaraCNPJ(campo) {
-        let valor = campo.value.replace(/\D/g, ""); // Limpa letras e símbolos
+        let valor = campo.value.replace(/\D/g, ""); 
 
-        if (valor.length > 14) valor = valor.substring(0, 14); // Limita a 14 números
+        if (valor.length > 14) valor = valor.substring(0, 14); 
 
-        // Coloca os pontos, barra e traço gradativamente
         valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
         valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
         valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2");

@@ -7,9 +7,14 @@
         <span class="badge bg-primary rounded-pill">{{ servicos.total }} cadastrados</span>
     </div>
 
-    <a href="/programa/novo" class="btn btn-primary shadow-sm fw-semibold" data-bs-toggle="tooltip" title="Adicionar um novo programa">
-        <i class="fa-solid fa-plus"></i> Novo Programa
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('exportar_servicos_excel', q=termo_busca) }}" class="btn btn-outline-success shadow-sm fw-semibold" title="Exportar os serviços filtrados para Excel">
+            <i class="fa-solid fa-file-excel"></i> Exportar Excel
+        </a>
+        <a href="/programa/novo" class="btn btn-primary shadow-sm fw-semibold" data-bs-toggle="tooltip" title="Adicionar um novo programa">
+            <i class="fa-solid fa-plus"></i> Novo Programa
+        </a>
+    </div>
 </div>
 
 <div class="card shadow-sm border-0 mb-4">
