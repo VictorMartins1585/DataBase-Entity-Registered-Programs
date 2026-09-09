@@ -347,7 +347,17 @@ def listar_servicos():
     query = aplicar_filtros_servicos(Servico.query, termo_busca)
     servicos = query.paginate(page=page, per_page=20)
 
-    return render_template('servicos.html', servicos=servicos, termo_busca=termo_busca)
+    # --- INÍCIO DA NOVA VERIFICAÇÃO ---
+    registro_exato = None
+    if termo_busca:
+        # Verifica se o termo digitado é um registro válido no banco
+        ong_existe = Entidade.query.filter_by(registro=termo_busca).first()
+        if ong_existe:
+            registro_exato = termo_busca
+    # --- FIM DA NOVA VERIFICAÇÃO ---
+
+    # Enviamos a variável 'registro_exato' para o HTML no final
+    return render_template('servicos.html', servicos=servicos, termo_busca=termo_busca, registro_exato=registro_exato)
 
 @app.route('/servicos/exportar-excel')
 def exportar_servicos_excel():
@@ -1016,6 +1026,67 @@ def formatar_data_br(valor):
         return valor
 
     return valor
+
+@app.route('/entidade/<path:registro>/certificado_programas')
+def gerar_certificado_programas(registro):
+    ong = Entidade.query.filter_by(registro=registro).first()
+    
+    if not ong:
+        return redirect('/servicos')
+        
+    # Puxa os dados gerais do registro da entidade
+    reg = Registro.query.filter_by(registro_reg=registro).order_by(text('rowid DESC')).first()
+    
+    # AQUI ESTÁ O SEGREDO DA ORDEM: Busca todos os serviços e ordena do mais antigo para o mais novo pelo rowid ascendente
+    lista_servicos = Servico.query.filter_by(registro_se=registro).order_by(Servico.rowid.asc()).all()
+        
+    rua = "Endereço não informado"
+    bairro = ""
+    distrito = ""
+    subprefeitura = ""
+    conselho = ""
+    
+    # Bloco padrão de busca do ViaCEP que já utilizamos nos outros certificados
+    if ong.cep:
+        cep_limpo = ''.join(filter(str.isdigit, str(ong.cep)))
+        if len(cep_limpo) == 8:
+            try:
+                resposta = requests.get(f"https://viacep.com.br/ws/{cep_limpo}/json/", timeout=5)
+                dados = resposta.json()
+                if 'erro' not in dados:
+                    rua = dados.get('logradouro', '')
+                    bairro_original = dados.get('bairro', '')
+                    bairro = bairro_original
+                    
+                    if bairro_original:
+                        bairro_busca = normalizar_bairro(bairro_original)
+                        
+                        if bairro_busca:
+                            todos_territorios = TerritorioSP.query.all()
+                            
+                            for t in todos_territorios:
+                                bairro_banco = normalizar_bairro(t.bairro)
+                                
+                                if bairro_banco and (bairro_banco == bairro_busca or bairro_busca in bairro_banco):
+                                    distrito = t.distrito
+                                    subprefeitura = t.subprefeitura
+                                    conselho = t.conselho
+                                    break 
+                                
+            except Exception as e:
+                print(f"Erro ao buscar CEP: {e}")
+                rua = "Erro ao buscar endereço"
+
+    # Envia a lista de serviços completa para o novo modelo HTML
+    return render_template('certificado_programas.html', 
+                           ong=ong, 
+                           reg=reg,
+                           servicos=lista_servicos,
+                           rua=rua, 
+                           bairro=bairro, 
+                           distrito=distrito,
+                           subprefeitura=subprefeitura,
+                           conselho=conselho)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

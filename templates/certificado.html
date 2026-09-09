@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Certificado de Registro - {{ ong.registro }}</title>
+
+    <!-- Importação do html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         /* Estilos base para a tela e para a impressão */
         body {
@@ -241,11 +245,16 @@
             size: A4;
             margin: 0;
         }
+        .btn-imagem {
+            top: 75px;
+            background-color: #198754;
+        }
     </style>
 </head>
 <body>
 
     <button class="btn-imprimir" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
+    <button class="btn-imprimir btn-imagem" onclick="salvarComoImagem()">🖼️ Salvar como Imagem</button>
 
     <div class="folha-a4">
 
@@ -315,6 +324,48 @@
         </table>
 
     </div>
+    <script>
+        async function salvarComoImagem() {
+            // Esconde os botões flutuantes para eles não saírem na foto
+            const botoes = document.querySelectorAll('.btn-imprimir');
+            botoes.forEach(btn => btn.style.display = 'none');
 
+            // Seleciona a folha principal do certificado
+            const certificado = document.querySelector('.folha-a4');
+
+            // Higieniza o número do registro (ex: "1234/23" vira "1234-23") para usar no nome do arquivo
+            // Caso o registro venha vazio, coloca "Novo"
+            const registro = "{{ ong.registro }}".replace(/\//g, '-') || "Novo";
+
+            try {
+                // Tira a sombra temporariamente para a borda da imagem ficar limpa
+                const sombraOriginal = certificado.style.boxShadow;
+                certificado.style.boxShadow = 'none';
+
+                // Tira o screenshot da div inteira
+                const canvas = await html2canvas(certificado, {
+                    scale: 2, // Fator 2 garante alta resolução para leitura de textos
+                    useCORS: true,
+                    backgroundColor: "#ffffff"
+                });
+
+                // Restaura a sombra da página no navegador
+                certificado.style.boxShadow = sombraOriginal;
+
+                // Força o download da imagem PNG
+                const link = document.createElement('a');
+                link.download = `Certificado_${registro}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+            } catch (erro) {
+                console.error("Erro ao gerar a imagem: ", erro);
+                alert("Ocorreu um erro ao tentar salvar a imagem. Verifique o console do navegador.");
+            } finally {
+                // Devolve os botões para a tela, dando erro ou não
+                botoes.forEach(btn => btn.style.display = 'block');
+            }
+        }
+    </script>
 </body>
 </html>
