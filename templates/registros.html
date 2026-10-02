@@ -90,6 +90,9 @@
                         <td>
                             {% if reg.situacao|upper == 'ATIVO' %}
                             <span class="badge bg-success">Ativo</span>
+                            {% if reg.vencimento and reg.vencimento >= hoje and reg.vencimento <= daqui_90_dias %}
+                            <span class="badge bg-info text-dark ms-1 shadow-sm"><i class="fa-regular fa-clock"></i> A Vencer</span>
+                            {% endif %}
                             {% elif reg.situacao|upper == 'VENCIDO' %}
                             <span class="badge bg-danger">Vencido</span>
                             {% elif reg.situacao|upper == 'AGUARDANDO RO' %}
@@ -98,7 +101,6 @@
                             <span class="badge bg-secondary">{{ reg.situacao }}</span>
                             {% endif %}
                         </td>
-
                         <td>{{ reg.data_ro | formatardata | data_br }}</td>
                         <td>{{ reg.vencimento | formatardata | data_br }}</td>
                     </tr>

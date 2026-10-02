@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="CPR DB — Sistema interno de gestão de entidades, registros e serviços da Comissão Permanente de Registros do CMDCA/SP.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231F5C4F'/%3E%3Ctext x='50' y='68' font-family='Arial, sans-serif' font-weight='700' font-size='50' fill='white' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
     <title>CPR DataBase</title>
@@ -21,6 +21,13 @@
         html, body {
             margin: 0 !important;
             padding: 0 !important;
+        }
+
+        body {
+            padding-top: 10px !important;
+            background-color: var(--brand-bg);
+            color: var(--brand-ink);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         /* ===== TOKENS DE DESIGN ===== */
         :root {
@@ -72,6 +79,10 @@
 
         /* Faixa institucional no topo */
         .faixa-topo {
+            position: absolute; 
+            top: 0;
+            left: 0;
+            z-index: 9999;
             height: 10px;
             width: 100%;
             background: linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
@@ -229,11 +240,11 @@
                 color: var(--brand-ink) !important;
             }
 
-            body.modo-escuro a:not(.btn) {
+            body.modo-escuro a:not(.btn):not(.nav-link):not(.navbar-brand) {
                 color: var(--brand-primary) !important;
             }
 
-                body.modo-escuro a:not(.btn):hover {
+                body.modo-escuro a:not(.btn):not(.nav-link):not(.navbar-brand):hover {
                     color: var(--brand-primary-dark) !important;
                 }
     </style>
@@ -273,9 +284,17 @@
                         </a>
                     </li>
                 </ul>
-                <button id="btn-modo-escuro" class="btn btn-outline-light btn-sm ms-3" title="Alternar Modo Escuro">
-                    <i class="fa-solid fa-moon" id="icone-tema"></i>
-                </button>
+                <div class="d-flex ms-auto align-items-center gap-3">
+                    <button id="btn-modo-escuro" class="btn btn-outline-light btn-sm" title="Alternar Modo Escuro">
+                        <i class="fa-solid fa-moon" id="icone-tema"></i>
+                    </button>
+
+                    {% if session.get('autenticado') %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm fw-bold shadow-sm border-0" style="background-color: rgba(220, 53, 69, 0.9);">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
@@ -295,40 +314,40 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 
     <script>
-        // Ativa as legendas (tooltips) em todos os botões que tiverem o data-bs-toggle="tooltip"
-        $(document).ready(function () {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            });
-            // Máscara do CNPJ (já deixando pronto para os formulários)
-            $('.cnpj-mask').mask('00.000.000/0000-00', { reverse: true });
-            $('.sei_mask').mask('0000.0000/0000000-0');
-        });
+                // Ativa as legendas (tooltips) em todos os botões que tiverem o data-bs-toggle="tooltip"
+                $(document).ready(function () {
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl)
+                    });
+                    // Máscara do CNPJ (já deixando pronto para os formulários)
+                    $('.cnpj-mask').mask('00.000.000/0000-00', { reverse: true });
+                    $('.sei-mask').mask('0000.0000/0000000-0');
+                });
     </script>
     <script>
-        const btnTema = document.getElementById('btn-modo-escuro');
-        const iconeTema = document.getElementById('icone-tema');
-        const corpo = document.body;
+                const btnTema = document.getElementById('btn-modo-escuro');
+                const iconeTema = document.getElementById('icone-tema');
+                const corpo = document.body;
 
-        function aplicarTemaEscuro(ativo) {
-            corpo.classList.toggle('modo-escuro', ativo);
-            document.documentElement.setAttribute('data-bs-theme', ativo ? 'dark' : 'light');
-            iconeTema.classList.toggle('fa-moon', !ativo);
-            iconeTema.classList.toggle('fa-sun', ativo);
-        }
+                function aplicarTemaEscuro(ativo) {
+                    corpo.classList.toggle('modo-escuro', ativo);
+                    document.documentElement.setAttribute('data-bs-theme', ativo ? 'dark' : 'light');
+                    iconeTema.classList.toggle('fa-moon', !ativo);
+                    iconeTema.classList.toggle('fa-sun', ativo);
+                }
 
-        // 1. Ao carregar a página, verifica se o usuário já tinha escolhido o modo escuro antes
-        if (localStorage.getItem('tema') === 'escuro') {
-            aplicarTemaEscuro(true);
-        }
+                // 1. Ao carregar a página, verifica se o usuário já tinha escolhido o modo escuro antes
+                if (localStorage.getItem('tema') === 'escuro') {
+                    aplicarTemaEscuro(true);
+                }
 
-        // 2. Ação do clique no botão
-        btnTema.addEventListener('click', function () {
-            const ativo = !corpo.classList.contains('modo-escuro');
-            aplicarTemaEscuro(ativo);
-            localStorage.setItem('tema', ativo ? 'escuro' : 'claro');
-        });
+                // 2. Ação do clique no botão
+                btnTema.addEventListener('click', function () {
+                    const ativo = !corpo.classList.contains('modo-escuro');
+                    aplicarTemaEscuro(ativo);
+                    localStorage.setItem('tema', ativo ? 'escuro' : 'claro');
+                });
     </script>
 </body>
 </html>

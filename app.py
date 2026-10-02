@@ -1,5 +1,7 @@
 from datetime import date, datetime, timedelta
 import os
+from dotenv import load_dotenv
+
 import requests
 import re
 import pandas as pd
@@ -7,11 +9,18 @@ import io
 import sqlite3
 import unicodedata
 import traceback
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, session
+from werkzeug.security import check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text, or_
 
 app = Flask(__name__)
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
+
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+SENHA_SISTEMA_HASH = os.getenv('SENHA_SISTEMA_HASH')
 
 # --- INÍCIO DO FILTRO DE DATAS ---
 @app.template_filter('formatardata')
@@ -127,6 +136,9 @@ class Servico(db.Model):
 
 with app.app_context():
     db.create_all()
+
+    db.session.execute(text("UPDATE registros SET id = rowid WHERE id IS NULL"))
+    db.session.commit()
 
 # ==========================================
 # ROTAS
@@ -267,7 +279,10 @@ def listar_registros():
     query = aplicar_filtros_registros(Registro.query, termo_busca, filtro_status)
     paginacao = query.paginate(page=pagina_atual, per_page=20, error_out=False)
 
-    return render_template('registros.html', registros=paginacao, busca=termo_busca, status=filtro_status)
+    hoje = datetime.now().strftime('%Y-%m-%d')
+    daqui_90_dias = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
+
+    return render_template('registros.html', registros=paginacao, busca=termo_busca, status=filtro_status, hoje=hoje, daqui_90_dias=daqui_90_dias)
 
 @app.route('/registros/exportar-excel')
 
@@ -323,9 +338,8 @@ def exportar_registros_excel():
 
     return send_file(output, download_name='Registros_Filtrados.xlsx', as_attachment=True)
 
-def aplicar_filtros_servicos(query, termo_busca):
-
-    """Aplica a busca textual numa query de Servico. Usado pela listagem e pela exportação."""
+def aplicar_filtros_servicos(query, termo_busca, filtro_status):
+    """Aplica a busca textual e o filtro de situação numa query de Servico."""
     if termo_busca:
         busca_formatada = f"%{termo_busca}%"
         query = query.filter(
@@ -338,34 +352,54 @@ def aplicar_filtros_servicos(query, termo_busca):
                 Servico.situacao_se.ilike(busca_formatada)
             )
         )
-    return query.order_by(Servico.rowid.desc())
+
+    # Lógica do filtro de situação (igual a de registros)
+    if filtro_status == 'A_VENCER':
+        hoje = datetime.now().strftime('%Y-%m-%d')
+        daqui_90_dias = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
+
+        query = query.filter(
+            Servico.vencimento_prog_se >= hoje,
+            Servico.vencimento_prog_se <= daqui_90_dias
+        )
+        query = query.order_by(Servico.vencimento_prog_se.asc())
+        
+    elif filtro_status:
+        query = query.filter(Servico.situacao_se.ilike(filtro_status))
+
+    if filtro_status != 'A_VENCER':
+        query = query.order_by(Servico.rowid.desc())
+
+    return query
 
 @app.route('/servicos')
 def listar_servicos():
     termo_busca = request.args.get('q', '').strip()
+    filtro_status = request.args.get('status', '') # NOVO PARÂMETRO
     page = request.args.get('page', 1, type=int)
-    query = aplicar_filtros_servicos(Servico.query, termo_busca)
+    
+    # Aplica os dois filtros
+    query = aplicar_filtros_servicos(Servico.query, termo_busca, filtro_status)
     servicos = query.paginate(page=page, per_page=20)
 
-    # --- INÍCIO DA NOVA VERIFICAÇÃO ---
     registro_exato = None
     if termo_busca:
-        # Verifica se o termo digitado é um registro válido no banco
         ong_existe = Entidade.query.filter_by(registro=termo_busca).first()
         if ong_existe:
             registro_exato = termo_busca
-    # --- FIM DA NOVA VERIFICAÇÃO ---
 
-    # Enviamos a variável 'registro_exato' para o HTML no final
-    return render_template('servicos.html', servicos=servicos, termo_busca=termo_busca, registro_exato=registro_exato)
+    hoje = datetime.now().strftime('%Y-%m-%d')
+    daqui_90_dias = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
+
+    return render_template('servicos.html', servicos=servicos, termo_busca=termo_busca, registro_exato=registro_exato, hoje=hoje, daqui_90_dias=daqui_90_dias, status=filtro_status)
 
 @app.route('/servicos/exportar-excel')
 def exportar_servicos_excel():
-    """Exporta pra Excel os serviços que batem com o filtro atual da tela (mesma
-    busca 'q' da URL), cruzando com os dados da entidade correspondente."""
+    """Exporta pra Excel cruzando com os filtros aplicados."""
     termo_busca = request.args.get('q', '').strip()
+    filtro_status = request.args.get('status', '') 
 
-    query = aplicar_filtros_servicos(Servico.query, termo_busca)
+    query = aplicar_filtros_servicos(Servico.query, termo_busca, filtro_status)
     servicos_filtrados = query.all()
 
     linhas = []
@@ -374,7 +408,6 @@ def exportar_servicos_excel():
 
         data_ro_fmt = formatar_data_br(formatardata(serv.data_ro_se))
         vencimento_fmt = formatar_data_br(formatardata(serv.vencimento_prog_se))
-        data_do_fmt = formatar_data_br(formatardata(serv.data_do_se))
         data_do_fmt = formatar_data_br(formatardata(serv.data_do_se))
         protocolo_se_fmt = formatar_data_br(formatardata(serv.protocolo_se))
 
@@ -620,39 +653,145 @@ def atualizar_status_temporal_registros():
     hoje = date.today()
     todos_registros = Registro.query.all()
     
+    # Variável para rastrear se realmente precisamos salvar algo no banco
+    teve_alteracao = False
+    
     for reg in todos_registros:
+        # 1. CORREÇÃO DA RAIZ DO ERRO: Força o ID a ser número, resolvendo a falha do SQLAlchemy
+        if isinstance(reg.id, str):
+            try:
+                reg.id = int(reg.id)
+            except ValueError:
+                pass
+                
         d_ro = converter_para_data(reg.data_ro)
         d_ven = converter_para_data(reg.vencimento)
         d_do = converter_para_data(reg.data_do) 
         
+        # 2. SÓ ATUALIZA SE A DATA ESTIVER NO FORMATO ANTIGO
         if d_ro and str(reg.data_ro).isdigit():
-            reg.data_ro = d_ro.strftime('%Y-%m-%d')
-            
+            novo_ro = d_ro.strftime('%Y-%m-%d')
+            if reg.data_ro != novo_ro:
+                reg.data_ro = novo_ro
+                teve_alteracao = True
+                
         if d_ven and str(reg.vencimento).isdigit():
-            reg.vencimento = d_ven.strftime('%Y-%m-%d')
-            
+            novo_ven = d_ven.strftime('%Y-%m-%d')
+            if reg.vencimento != novo_ven:
+                reg.vencimento = novo_ven
+                teve_alteracao = True
+                
         if d_do and str(reg.data_do).isdigit():
-            reg.data_do = d_do.strftime('%Y-%m-%d')
+            novo_do = d_do.strftime('%Y-%m-%d')
+            if reg.data_do != novo_do:
+                reg.data_do = novo_do
+                teve_alteracao = True
 
-        if reg.observacoes and "[STATUS_TRAVADO]" in reg.observacoes:
+        # 3. SÓ ATUALIZA A SITUAÇÃO SE ELA DE FATO TIVER MUDADO HOJE
+        if not (reg.observacoes and "[STATUS_TRAVADO]" in reg.observacoes):
+            nova_situacao = reg.situacao
+            if d_ro and d_ven:
+                if hoje < d_ro:
+                    nova_situacao = "AGUARDANDO RO"
+                elif d_ro <= hoje <= d_ven:
+                    nova_situacao = "ATIVO"
+                elif hoje > d_ven:
+                    nova_situacao = "VENCIDO"
+                    
+            if reg.situacao != nova_situacao:
+                reg.situacao = nova_situacao
+                teve_alteracao = True
+                
+    # 4. SALVA APENAS UMA VEZ NO FINAL E SOMENTE SE HOUVE MUDANÇA
+    if teve_alteracao:
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Erro no commit: {e}")
+
+
+def atualizar_status_temporal_servicos():
+    hoje = date.today()
+    todos_servicos = Servico.query.all()
+    teve_alteracao = False
+    
+    for serv in todos_servicos:
+        # Se o serviço for nulo ou não tiver um identificador válido, pula
+        if not serv or not serv.rowid:
             continue
-            
+                
+        d_ro = converter_para_data(serv.data_ro_se)
+        d_ven = converter_para_data(serv.vencimento_prog_se)
+        d_do = converter_para_data(serv.data_do_se) 
+        
+        # Variáveis provisórias para segurar as datas
+        nova_ro = serv.data_ro_se
+        nova_ven = serv.vencimento_prog_se
+        nova_do = serv.data_do_se
+        
+        if d_ro and str(serv.data_ro_se).isdigit():
+            nova_ro = d_ro.strftime('%Y-%m-%d')
+                
+        if d_ven and str(serv.vencimento_prog_se).isdigit():
+            nova_ven = d_ven.strftime('%Y-%m-%d')
+                
+        if d_do and str(serv.data_do_se).isdigit():
+            nova_do = d_do.strftime('%Y-%m-%d')
+
+        # Calcula a situação comparando com a data de hoje
+        nova_situacao = serv.situacao_se
         if d_ro and d_ven:
             if hoje < d_ro:
-                reg.situacao = "AGUARDANDO RO"
+                nova_situacao = "AGUARDANDO RO"
             elif d_ro <= hoje <= d_ven:
-                reg.situacao = "ATIVO"
+                nova_situacao = "ATIVO"
             elif hoje > d_ven:
-                reg.situacao = "VENCIDO"
+                nova_situacao = "VENCIDO"
                 
-    db.session.commit()
+        # Se houve QUALQUER mudança (na situação ou formatação da data), injetamos SQL direto
+        if (nova_situacao != serv.situacao_se or 
+            nova_ro != serv.data_ro_se or 
+            nova_ven != serv.vencimento_prog_se or 
+            nova_do != serv.data_do_se):
+            
+            # Comando de atualização direto no banco, ignorando bugs de rastreamento do SQLAlchemy
+            db.session.execute(
+                text("""
+                    UPDATE servicos 
+                    SET situacao_se = :sit, 
+                        data_ro_se = :ro, 
+                        vencimento_prog_se = :ven, 
+                        data_do_se = :do 
+                    WHERE rowid = :rid
+                """),
+                {
+                    "sit": nova_situacao,
+                    "ro": nova_ro,
+                    "ven": nova_ven,
+                    "do": nova_do,
+                    "rid": int(serv.rowid)
+                }
+            )
+            teve_alteracao = True
+                
+    if teve_alteracao:
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Erro no commit de serviços (SQL direto): {e}")
 
 @app.before_request
 def rodar_automacoes_background():
-    try:
-        atualizar_status_temporal_registros()
-    except Exception as e:
-        print(f"Erro na automação de status: {e}")
+    # Só roda a automação em carregamentos de página real (ignora arquivos estáticos como imagens e CSS)
+    if request.endpoint and 'static' not in request.endpoint:
+        try:
+            atualizar_status_temporal_registros()
+            atualizar_status_temporal_servicos()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Erro na automação de status: {e}")
 
 @app.route('/nova_entidade', methods=['GET', 'POST'])
 def nova_entidade():
@@ -776,7 +915,6 @@ def editar_programa(id_linha):
         prog.pag_do_se = request.form.get('pag_do_se')
         prog.protocolo_se = request.form.get('protocolo_se')
         prog.cpr_se = request.form.get('cpr_se')
-        prog.situacao_se = request.form.get('situacao_se')
         prog.data_ro_se = request.form.get('data_ro_se')
         prog.vencimento_prog_se = request.form.get('vencimento_prog_se')
         prog.data_do_se = request.form.get('data_do_se')
@@ -1087,6 +1225,38 @@ def gerar_certificado_programas(registro):
                            distrito=distrito,
                            subprefeitura=subprefeitura,
                            conselho=conselho)
+
+# ==========================================
+# SISTEMA DE AUTENTICAÇÃO (SENHA ÚNICA)
+# ==========================================
+
+@app.before_request
+def travar_sistema():
+    rotas_liberadas = ['login', 'static']
+    
+    if request.endpoint not in rotas_liberadas:
+        if not session.get('autenticado'):
+            return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    erro = None
+    if request.method == 'POST':
+        senha_digitada = request.form.get('senha')
+        
+        if check_password_hash(SENHA_SISTEMA_HASH, senha_digitada):
+            session['autenticado'] = True
+            return redirect(url_for('listar_entidades'))
+        else:
+            erro = "Senha incorreta. Acesso negado."
+            
+    return render_template('login.html', erro=erro)
+
+@app.route('/logout')
+def logout():
+    session.pop('autenticado', None)
+    return redirect(url_for('login'))
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

@@ -13,3 +13,6 @@ __pycache__/
 # Bloquear seus backups locais
 BackupBanco/
 Fazer_Backup.bat
+
+# Segredos
+.env
